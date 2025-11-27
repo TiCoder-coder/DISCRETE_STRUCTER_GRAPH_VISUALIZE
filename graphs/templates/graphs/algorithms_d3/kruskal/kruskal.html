@@ -1,75 +1,191 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Test Kruskal Algorithm</title>
-  <script src="https://unpkg.com/cytoscape@3.23.0/dist/cytoscape.min.js"></script>
-  <script src="https://unpkg.com/layout-base@1.0.0/layout-base.js"></script>
-  <script src="https://unpkg.com/cose-base@2.0.0/cose-base.js"></script>
-  <style>
-    body { font-family: Arial; margin: 0; display: flex; }
-    #cy { width: 70%; height: 100vh; background: #1e1e1e; }
-    #panel { width: 30%; padding: 20px; background: #2d2d2d; color: white; overflow-y: auto; }
-    button { margin: 10px 0; padding: 10px; width: 100%; font-size: 16px; }
-    .highlighted { line-color: yellow !important; width: 8px !important; }
-    .mst-edge { line-color: #00ff00 !important; width: 8px !important; }
-    .faded { opacity: 0.2; }
-  </style>
+<meta charset="UTF-8">
+<title>Kruskal</title>
+<script src="https://unpkg.com/cytoscape@3.23.0/dist/cytoscape.min.js"></script>
+
+<style>
+  body{margin:0;font-family:Arial;background:#111;color:#fff;display:flex;height:100vh;overflow:hidden}
+  #cy{flex:7}
+  #panel{flex:3;padding:40px 20px;background:#1e1e1e;display:flex;flex-direction:column;align-items:center}
+  h1{color:#0ff;margin-bottom:30px;text-align:center;font-size:32px}
+  #info{font-size:30px;color:#0f0;margin:30px 0;font-weight:bold}
+  button{width:85%;padding:20px;margin:12px 0;font-size:22px;background:#333;border:none;color:white;border-radius:12px;cursor:pointer}
+  button:hover{background:#555}
+</style>
+
 </head>
 <body>
-  <div id="cy"></div>
-  <div id="panel">
-    <h2>Thuật toán Kruskal</h2>
-    <button onclick="runKruskalStep()">Bước tiếp theo</button>
-    <button onclick="runKruskalAll()">Chạy hết</button>
-    <button onclick="resetKruskal()">Reset</button>
-    <button onclick="randomGraph()">Đồ thị ngẫu nhiên</button>
-    <div id="algorithm-info"></div>
-    <div id="algorithm-result"></div>
-  </div>
 
-  <script src="kruskal.js"></script>
-  <script>
-    const cy = cytoscape({
-      container: document.getElementById('cy'),
-      style: [
-        { selector: 'node', style: { 'background-color': '#666', 'label': 'data(id)', 'color': 'white', 'text-outline-width': 2, 'text-outline-color': '#000' } },
-        { selector: 'edge', style: { 'width': 4, 'line-color': '#888', 'curve-style': 'bezier',
-          'label': 'data(weight)', 'font-size': 12, 'color': 'yellow', 'text-background-color': '#000', 'text-background-opacity': 0.7 }}
-      ],
-      layout: { name: 'cose' }
-    });
+<div id="cy"></div>
 
-    function randomGraph() {
-      resetKruskal();
-      cy.elements().remove();
-      const nodes = 'ABCDEFGHI'.split('');
-      nodes.forEach(n => cy.add({ group: 'nodes', data: { id: n } }));
-      for (let i = 0; i < 15; i++) {
-        const s = nodes[Math.floor(Math.random()*nodes.length)];
-        let t = nodes[Math.floor(Math.random()*nodes.length)];
-        if (s !== t && !cy.edges(`[source="${s}"][target="${t}"]`).length && !cy.edges(`[source="${t}"][target="${s}"]`).length) {
-          cy.add({ group: 'edges', data: { source: s, target: t, weight: Math.floor(Math.random()*90)+10 }});
-        }
-      }
-      cy.layout({ name: 'cose' }).run();
+<div id="panel">
+  <h1>Thuật toán Kruskal</h1>
+  <div id="info">Tổng trọng số: 0</div>
+  <button onclick="step()">Bước tiếp theo</button>
+  <button onclick="runAll()">Chạy hết</button>
+  <button onclick="resetAll()">Reset</button>
+  <button onclick="random()">Đồ thị ngẫu nhiên</button>
+</div>
+
+<script>
+let cy, edges = [], idx = 0, parent = {}, totalWeight = 0;
+const info = document.getElementById('info');
+
+function find(x){ return parent[x]===x ? x : parent[x]=find(parent[x]) }
+function union(x,y){
+  let a=find(x), b=find(y);
+  if(a===b) return false;
+  parent[b]=a;
+  return true;
+}
+
+function prepare(){
+  edges = cy.edges().map(e=>({
+      id:e.id(), s:e.source().id(), t:e.target().id(), w:+e.data('weight')
+  })).sort((a,b)=>a.w-b.w);
+
+  idx = 0;
+  totalWeight = 0;
+  parent = {};
+  cy.nodes().forEach(n => parent[n.id()] = n.id());
+
+  cy.edges().removeClass('highlighted mst-edge faded');
+
+  info.textContent = "Tổng trọng số: 0";
+}
+
+function step(){
+  if(idx >= edges.length){
+    info.textContent = `HOÀN THÀNH! Tổng = ${totalWeight}`;
+    return;
+  }
+
+  let e = edges[idx++];
+  let ele = cy.getElementById(e.id);
+
+  ele.addClass('highlighted');
+
+  setTimeout(() => {
+    if (union(e.s, e.t)) {
+      ele.removeClass('highlighted').addClass('mst-edge');
+      totalWeight += e.w;
+      info.textContent = "Tổng trọng số: " + totalWeight;
+    } else {
+      ele.removeClass('highlighted').addClass('faded');
     }
+  }, 700);
+}
 
-    // Đồ thị mẫu giống trên
-    cy.add([
-      { group: 'nodes', data: { id: 'A' } }, { group: 'nodes', data: { id: 'B' } },
-      { group: 'nodes', data: { id: 'C' } }, { group: 'nodes', data: { id: 'D' } },
-      { group: 'nodes', data: { id: 'E' } },
-      { group: 'edges', data: { source: 'A', target: 'B', weight: 4 } },
-      { group: 'edges', data: { source: 'A', target: 'C', weight: 8 } },
-      { group: 'edges', data: { source: 'B', target: 'C', weight: 11 } },
-      { group: 'edges', data: { source: 'B', target: 'D', weight: 8 } },
-      { group: 'edges', data: { source: 'C', target: 'D', weight: 7 } },
-      { group: 'edges', data: { source: 'C', target: 'E', weight: 2 } },
-      { group: 'edges', data: { source: 'D', target: 'E', weight: 6 } }
-    ]);
-    cy.layout({ name: 'cose' }).run();
-  </script>
+function runAll(){
+  let timer = setInterval(()=>{
+    if(idx >= edges.length) { clearInterval(timer); return; }
+    step();
+  }, 800);
+}
+
+function resetAll(){ prepare(); }
+
+function random(){
+  let n = 5 + Math.floor(Math.random()*5);
+  let lbl = "ABCDEFGHIJK".slice(0,n);
+  let nodes = lbl.split('').map(c=>({data:{id:c}}));
+  let edgs = [];
+
+  for(let i=0;i<n;i++){
+    for(let j=i+1;j<n;j++){
+      if(Math.random() < 0.7){
+        let w = Math.floor(Math.random()*30)+1;
+        edgs.push({data:{id:lbl[i]+lbl[j], source:lbl[i], target:lbl[j], weight:w}});
+      }
+    }
+  }
+
+  cy.json({nodes, edges:edgs});
+  cy.layout({name:'cose', animate:true, animationDuration:1000}).run();
+
+  setTimeout(prepare, 1200);
+}
+
+cy = cytoscape({
+  container: document.getElementById('cy'),
+
+  /* ⭐ Style CHUẨN — MST XANH LÁ */
+  style: [
+    {
+      selector:'node',
+      style:{
+        'background-color':'#666',
+        'label':'data(id)',
+        'color':'white',
+        'font-size':32,
+        'text-outline-width':4,
+        'text-outline-color':'#000'
+      }
+    },
+    {
+      selector:'edge',
+      style:{
+        'width':7,
+        'line-color':'#888',
+        'label':'data(weight)',
+        'font-size':22,
+        'color':'yellow',
+        'text-outline-width':3,
+        'text-outline-color':'#000',
+        'curve-style':'bezier'
+      }
+    },
+
+    /* ⭐ Cạnh MST: MÀU XANH LÁ + TO HƠN → nhìn rõ */
+    {
+      selector: '.mst-edge',
+      style: {
+        'line-color': '#00ff00',
+        'width': 14
+      }
+    },
+
+    /* ⭐ Cạnh đang xét: màu vàng */
+    {
+      selector: '.highlighted',
+      style: {
+        'line-color': 'yellow',
+        'width': 16
+      }
+    },
+
+    /* ⭐ Cạnh không chọn */
+    {
+      selector: '.faded',
+      style: {
+        'opacity': 0.12
+      }
+    }
+  ],
+
+  elements: {
+    nodes: [
+      {data:{id:'A'}},{data:{id:'B'}},{data:{id:'C'}},
+      {data:{id:'D'}},{data:{id:'E'}}
+    ],
+    edges: [
+      {data:{id:'AB',source:'A',target:'B',weight:4}},
+      {data:{id:'AC',source:'A',target:'C',weight:8}},
+      {data:{id:'BC',source:'B',target:'C',weight:11}},
+      {data:{id:'BD',source:'B',target:'D',weight:8}},
+      {data:{id:'CD',source:'C',target:'D',weight:7}},
+      {data:{id:'CE',source:'C',target:'E',weight:2}},
+      {data:{id:'DE',source:'D',target:'E',weight:6}}
+    ]
+  },
+
+  layout: {name:'circle', padding:50}
+});
+
+cy.ready(() => prepare());
+</script>
+
 </body>
 </html>

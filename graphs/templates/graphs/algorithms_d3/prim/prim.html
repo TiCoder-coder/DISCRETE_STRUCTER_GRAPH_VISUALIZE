@@ -1,80 +1,160 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Test Prim Algorithm</title>
-  <script src="https://unpkg.com/cytoscape@3.23.0/dist/cytoscape.min.js"></script>
-  <script src="https://unpkg.com/layout-base@1.0.0/layout-base.js"></script>
-  <script src="https://unpkg.com/cose-base@2.0.0/cose-base.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <style>
-    body { font-family: Arial; margin: 0; display: flex; }
-    #cy { width: 70%; height: 100vh; background: #1e1e1e; }
-    #panel { width: 30%; padding: 20px; background: #2d2d2d; color: white; overflow-y: auto; }
-    button { margin: 10px 0; padding: 10px; width: 100%; font-size: 16px; }
-    #algorithm-info, #algorithm-result { margin-top: 20px; }
-    .highlighted { line-color: yellow !important; width: 6px !important; }
-    .mst-edge { line-color: #00ff00 !important; width: 8px !important; }
-    .mst-node { background-color: #00ff00 !important; }
-    .faded { opacity: 0.2; }
-  </style>
+<meta charset="UTF-8">
+<title>Prim - Cạnh xanh lá to bự, chạy ngon mọi đồ thị</title>
+<script src="https://unpkg.com/cytoscape@3.23.0/dist/cytoscape.min.js"></script>
+<style>
+  body{margin:0;font-family:Arial;background:#111;color:#fff;display:flex;height:100vh;overflow:hidden}
+  #cy{flex:7}
+  #panel{flex:3;padding:40px 20px;background:#1e1e1e;display:flex;flex-direction:column;align-items:center}
+  h1{color:#0ff;margin-bottom:30px;text-align:center;font-size:32px}
+  #info{font-size:30px;color:#0f0;margin:30px 0;font-weight:bold}
+  button{width:85%;padding:20px;margin:12px 0;font-size:22px;background:#333;border:none;color:white;border-radius:12px;cursor:pointer}
+  button:hover{background:#555}
+  
+  /* SIÊU QUAN TRỌNG - CẠNH XANH LÁ TO + SÁNG */
+  edge.mst-edge {
+    line-color: #00ff00 !important;
+    width: 20px !important;
+    opacity: 1 !important;
+    z-index: 10;
+  }
+  edge.highlighted {
+    line-color: yellow !important;
+    width: 22px !important;
+    z-index: 20;
+  }
+  node.mst-node {
+    background-color: #00ff88 !important;
+    border-color: #00ff00 !important;
+    border-width: 8px !important;
+  }
+</style>
 </head>
 <body>
-  <div id="cy"></div>
-  <div id="panel">
-    <h2>Thuật toán Prim</h2>
-    <button onclick="runPrimStep()">Bước tiếp theo</button>
-    <button onclick="runPrimAll()">Chạy hết</button>
-    <button onclick="resetPrim()">Reset</button>
-    <button onclick="randomGraph()">Đồ thị ngẫu nhiên</button>
-    <div id="algorithm-info"></div>
-    <div id="algorithm-result"></div>
-  </div>
+<div id="cy"></div>
+<div id="panel">
+  <h1>Thuật toán Prim</h1>
+  <div id="info">Tổng trọng số: 0</div>
+  <button onclick="step()">Bước tiếp theo</button>
+  <button onclick="runAll()">Chạy hết</button>
+  <button onclick="resetAll()">Reset</button>
+  <button onclick="random()">Đồ thị ngẫu nhiên</button>
+</div>
 
-  <script src="prim.js"></script>
-  <script>
-    const cy = cytoscape({
-      container: document.getElementById('cy'),
-      style: [
-        { selector: 'node', style: { 'background-color': '#666', 'label': 'data(id)', 'color': 'white', 'text-outline-width': 2, 'text-outline-color': '#000' } },
-        { selector: 'edge', style: { 'width': 4, 'line-color': '#888', 'target-arrow-color': '#888', 'target-arrow-shape': 'none', 'curve-style': 'bezier',
-          'label': 'data(weight)', 'font-size': 12, 'color': 'yellow', 'text-background-color': '#000', 'text-background-opacity': 0.7, 'text-background-padding': '4px' }}
-      ],
-      layout: { name: 'cose' }
+<script>
+let cy, totalWeight = 0;
+const info = document.getElementById('info');
+let inMST = new Set();
+let candidates = [];
+
+function prepare() {
+  inMST = new Set(['A']);  // luôn bắt đầu từ A
+  candidates = [];
+  totalWeight = 0;
+  info.textContent = "Tổng trọng số: 0";
+  
+  cy.nodes().style({'background-color': '#666', 'border-width': 0});
+  cy.edges().style({'line-color': '#888', 'width': 7});
+  
+  // Đánh dấu A là đã vào MST
+  cy.getElementById('A').style({'background-color': '#00ff88', 'border-color': '#00ff00', 'border-width': 8});
+  updateCandidates();
+}
+
+function updateCandidates() {
+  candidates = [];
+  cy.edges().forEach(edge => {
+    const u = edge.source().id();
+    const v = edge.target().id();
+    const w = parseInt(edge.data('weight'));
+    if (inMST.has(u) && !inMST.has(v)) candidates.push({edge, w, newNode: v});
+    if (inMST.has(v) && !inMST.has(u)) candidates.push({edge, w, newNode: u});
+  });
+  candidates.sort((a,b) => a.w - b.w);
+}
+
+function step() {
+  if (candidates.length === 0) {
+    info.textContent = `HOÀN THÀNH! Tổng = ${totalWeight}`;
+    return;
+  }
+
+  const {edge, w, newNode} = candidates.shift();
+
+  // Tô vàng cạnh đang xét
+  edge.style({'line-color': 'yellow', 'width': 22});
+
+  setTimeout(() => {
+    // Thêm vào cây khung
+    inMST.add(newNode);
+    totalWeight += w;
+    info.textContent = "Tổng trọng số: " + totalWeight;
+
+    // Cạnh xanh lá bự
+    edge.style({'line-color': '#00ff00', 'width': 20});
+    // Đỉnh mới xanh lá
+    cy.getElementById(newNode).style({
+      'background-color': '#00ff88',
+      'border-color': '#00ff00',
+      'border-width': 8
     });
 
-    function randomGraph() {
-      resetPrim();
-      cy.elements().remove();
-      const nodes = 'ABCDEFGHI'.split('');
-      nodes.forEach(n => cy.add({ group: 'nodes', data: { id: n } }));
-      for (let i = 0; i < 15; i++) {
-        const s = nodes[Math.floor(Math.random()*nodes.length)];
-        let t = nodes[Math.floor(Math.random()*nodes.length)];
-        if (s !== t && !cy.edges(`[source="${s}"][target="${t}"]`).length && !cy.edges(`[source="${t}"][target="${s}"]`).length) {
-          cy.add({ group: 'edges', data: { source: s, target: t, weight: Math.floor(Math.random()*90)+10 }});
-        }
-      }
-      cy.layout({ name: 'cose' }).run();
-    }
+    updateCandidates();
+  }, 900);
+}
 
-    // Tạo đồ thị mẫu ban đầu
-    cy.add([
-      { group: 'nodes', data: { id: 'A' } },
-      { group: 'nodes', data: { id: 'B' } },
-      { group: 'nodes', data: { id: 'C' } },
-      { group: 'nodes', data: { id: 'D' } },
-      { group: 'nodes', data: { id: 'E' } },
-      { group: 'edges', data: { source: 'A', target: 'B', weight: 4 } },
-      { group: 'edges', data: { source: 'A', target: 'C', weight: 8 } },
-      { group: 'edges', data: { source: 'B', target: 'C', weight: 11 } },
-      { group: 'edges', data: { source: 'B', target: 'D', weight: 8 } },
-      { group: 'edges', data: { source: 'C', target: 'D', weight: 7 } },
-      { group: 'edges', data: { source: 'C', target: 'E', weight: 2 } },
-      { group: 'edges', data: { source: 'D', target: 'E', weight: 6 } }
-    ]);
-    cy.layout({ name: 'cose' }).run();
-  </script>
+function runAll() {
+  const timer = setInterval(() => {
+    if (candidates.length === 0) {
+      clearInterval(timer);
+      info.textContent = `HOÀN THÀNH! Tổng = ${totalWeight}`;
+      return;
+    }
+    step();
+  }, 1000);
+}
+
+function resetAll() { prepare(); }
+
+function random() {
+  const n = 5 + Math.floor(Math.random()*5);
+  const labels = "ABCDEFGHIJK".slice(0,n);
+  const nodes = labels.split('').map(c => ({data:{id:c}}));
+  const edges = [];
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)if(Math.random()<0.7){
+    const w = Math.floor(Math.random()*40)+1;
+    edges.push({data:{id:labels[i]+labels[j], source:labels[i], target:labels[j], weight:w}});
+  }
+  cy.json({nodes, edges});
+  cy.layout({name:'cose', animate:true, animationDuration:1200}).run();
+  setTimeout(prepare, 1400);
+}
+
+// ĐỒ THỊ MẪU
+cy = cytoscape({
+  container: document.getElementById('cy'),
+  style: [
+    {selector:'node', style:{'background-color':'#666','label':'data(id)','color':'white','font-size':36,'text-outline-width':5,'text-outline-color':'#000'}},
+    {selector:'edge', style:{'width':7,'line-color':'#888','label':'data(weight)','font-size':24,'color':'yellow','text-outline-width':3,'text-outline-color':'#000','curve-style':'bezier'}}
+  ],
+  elements: {
+    nodes: [{data:{id:'A'}},{data:{id:'B'}},{data:{id:'C'}},{data:{id:'D'}},{data:{id:'E'}}],
+    edges: [
+      {data:{id:'AB',source:'A',target:'B',weight:4}},
+      {data:{id:'AC',source:'A',target:'C',weight:8}},
+      {data:{id:'BC',source:'B',target:'C',weight:11}},
+      {data:{id:'BD',source:'B',target:'D',weight:8}},
+      {data:{id:'CD',source:'C',target:'D',weight:7}},
+      {data:{id:'CE',source:'C',target:'E',weight:2}},
+      {data:{id:'DE',source:'D',target:'E',weight:6}}
+    ]
+  },
+  layout: {name:'cose'}
+});
+
+cy.ready(() => prepare());
+</script>
 </body>
 </html>

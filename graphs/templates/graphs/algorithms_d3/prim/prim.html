@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Test Prim Algorithm</title>
+  <script src="https://unpkg.com/cytoscape@3.23.0/dist/cytoscape.min.js"></script>
+  <script src="https://unpkg.com/layout-base@1.0.0/layout-base.js"></script>
+  <script src="https://unpkg.com/cose-base@2.0.0/cose-base.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <style>
+    body { font-family: Arial; margin: 0; display: flex; }
+    #cy { width: 70%; height: 100vh; background: #1e1e1e; }
+    #panel { width: 30%; padding: 20px; background: #2d2d2d; color: white; overflow-y: auto; }
+    button { margin: 10px 0; padding: 10px; width: 100%; font-size: 16px; }
+    #algorithm-info, #algorithm-result { margin-top: 20px; }
+    .highlighted { line-color: yellow !important; width: 6px !important; }
+    .mst-edge { line-color: #00ff00 !important; width: 8px !important; }
+    .mst-node { background-color: #00ff00 !important; }
+    .faded { opacity: 0.2; }
+  </style>
+</head>
+<body>
+  <div id="cy"></div>
+  <div id="panel">
+    <h2>Thuật toán Prim</h2>
+    <button onclick="runPrimStep()">Bước tiếp theo</button>
+    <button onclick="runPrimAll()">Chạy hết</button>
+    <button onclick="resetPrim()">Reset</button>
+    <button onclick="randomGraph()">Đồ thị ngẫu nhiên</button>
+    <div id="algorithm-info"></div>
+    <div id="algorithm-result"></div>
+  </div>
+
+  <script src="prim.js"></script>
+  <script>
+    const cy = cytoscape({
+      container: document.getElementById('cy'),
+      style: [
+        { selector: 'node', style: { 'background-color': '#666', 'label': 'data(id)', 'color': 'white', 'text-outline-width': 2, 'text-outline-color': '#000' } },
+        { selector: 'edge', style: { 'width': 4, 'line-color': '#888', 'target-arrow-color': '#888', 'target-arrow-shape': 'none', 'curve-style': 'bezier',
+          'label': 'data(weight)', 'font-size': 12, 'color': 'yellow', 'text-background-color': '#000', 'text-background-opacity': 0.7, 'text-background-padding': '4px' }}
+      ],
+      layout: { name: 'cose' }
+    });
+
+    function randomGraph() {
+      resetPrim();
+      cy.elements().remove();
+      const nodes = 'ABCDEFGHI'.split('');
+      nodes.forEach(n => cy.add({ group: 'nodes', data: { id: n } }));
+      for (let i = 0; i < 15; i++) {
+        const s = nodes[Math.floor(Math.random()*nodes.length)];
+        let t = nodes[Math.floor(Math.random()*nodes.length)];
+        if (s !== t && !cy.edges(`[source="${s}"][target="${t}"]`).length && !cy.edges(`[source="${t}"][target="${s}"]`).length) {
+          cy.add({ group: 'edges', data: { source: s, target: t, weight: Math.floor(Math.random()*90)+10 }});
+        }
+      }
+      cy.layout({ name: 'cose' }).run();
+    }
+
+    // Tạo đồ thị mẫu ban đầu
+    cy.add([
+      { group: 'nodes', data: { id: 'A' } },
+      { group: 'nodes', data: { id: 'B' } },
+      { group: 'nodes', data: { id: 'C' } },
+      { group: 'nodes', data: { id: 'D' } },
+      { group: 'nodes', data: { id: 'E' } },
+      { group: 'edges', data: { source: 'A', target: 'B', weight: 4 } },
+      { group: 'edges', data: { source: 'A', target: 'C', weight: 8 } },
+      { group: 'edges', data: { source: 'B', target: 'C', weight: 11 } },
+      { group: 'edges', data: { source: 'B', target: 'D', weight: 8 } },
+      { group: 'edges', data: { source: 'C', target: 'D', weight: 7 } },
+      { group: 'edges', data: { source: 'C', target: 'E', weight: 2 } },
+      { group: 'edges', data: { source: 'D', target: 'E', weight: 6 } }
+    ]);
+    cy.layout({ name: 'cose' }).run();
+  </script>
+</body>
+</html>

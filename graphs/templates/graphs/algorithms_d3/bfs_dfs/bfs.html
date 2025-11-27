@@ -1,0 +1,11 @@
+{% extends 'graphs/layout.html' %}
+{% block title %}Trực quan BFS với D3.js{% endblock %}
+
+{% block content %}
+<h2>Thuật toán BFS – Trực quan bằng D3.js</h2>
+<svg id="graph" width="800" height="500"></svg>
+
+<!-- Import D3.js và script trực quan -->
+<script src="{% static 'graphs/js/d3/d3.v7.min.js' %}"></script>
+<script src="{% static 'graphs/js/algorithms_d3/bfs_dfs/bfs_d3.js' %}"></script>
+{% endblock %}

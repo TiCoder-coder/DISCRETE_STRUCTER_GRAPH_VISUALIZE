@@ -1,0 +1,119 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>GRAPH ALGORITHMS - HOME</title>
+
+<style>
+body {
+    background-image: url("{% static 'graphs/images/purple_wave.png' %}");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    font-family: 'Inter', sans-serif;
+    color: white;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    text-align: center;
+    padding-top: 80px;
+}
+
+h1 {
+    font-size: 52px;
+    margin: 24px auto 32px;
+    padding: 14px 80px;
+    display: block;
+    width: fit-content;
+
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-weight: 800;
+
+    background: linear-gradient(120deg, #1f2b7a, #3f51b5, #00e5ff);
+    border-radius: 999px;
+    box-shadow: 0 0 22px rgba(0, 229, 255, 0.55);
+
+    color: #ffffff;
+    -webkit-text-fill-color: #faf7f7;
+    text-shadow: 0 0 10px rgba(0,0,0,0.45);
+}
+
+h1::after {
+    content: none;
+}
+
+
+.algos-box {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+.algo-btn {
+    padding: 20px 40px;
+    font-size: 22px;
+    background: linear-gradient(135deg, #0390ee, #44ffd4);
+    color: black;
+    border-radius: 14px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: .25s;
+    box-shadow: 0 0 12px rgba(0,255,190,0.6);
+}
+
+.algo-btn:hover {
+    transform: scale(1.10);
+    background: linear-gradient(135deg, #3bff9f, #7affdf);
+    box-shadow: 0 0 20px rgba(0,255,210,0.8);
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+    <h1>GRAPH ALGORITHMS VISUALIZER</h1>
+
+    <div class="algos-box">
+
+        <button class="algo-btn" onclick="window.location.href='/fleury/'">
+            Thuật toán Fleury
+        </button>
+
+        <button class="algo-btn" onclick="window.location.href='/hierholzer/'">
+            Thuật toán Hierholzer
+        </button>
+
+        <button class="algo-btn" onclick="window.location.href='/bfs/'">
+            Thuật toán BFS
+        </button>
+
+        <button class="algo-btn" onclick="window.location.href='/dfs/'">
+            Thuật toán DFS
+        </button>
+
+        <button class="algo-btn" onclick="window.location.href='/ford_fulkerson/'">
+            Thuật toán Ford Fulkerson
+        </button>
+
+        <button class="algo-btn" onclick="window.location.href='/kruskal/'">
+            Thuật toán Kruskal
+        </button>
+
+        <button class="algo-btn" onclick="window.location.href='/prim/'">
+            Thuật toán Prim
+        </button>
+
+    </div>
+</div>
+
+</body>
+</html>

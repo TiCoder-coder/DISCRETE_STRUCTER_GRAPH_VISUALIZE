@@ -63,7 +63,7 @@ DATABASES = {
         'NAME': 'graph_db',
         'ENFORCE_SCHEMA': False,
         'CLIENT': {
-            'host': 'mongodb://localhost:27018/',
+            'host': 'mongodb://myUser:myPassword@localhost:27017/graph_db?authSource=admin',
         },
     }
 }

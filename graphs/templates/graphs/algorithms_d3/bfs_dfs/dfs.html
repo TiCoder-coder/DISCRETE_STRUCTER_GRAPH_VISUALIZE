@@ -1,0 +1,600 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GRAPH VISUALIZE DFS ALGORITHM</title>
+
+<style>
+/* --- GIỮ NGUYÊN CSS CŨ --- */
+#graphArea {
+    overflow: hidden !important;
+}
+
+.neon-title {
+    font-size: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, #00fff0, #41ffd1, #ffe66d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 10px rgba(0,255,200,0.8),
+                 0 0 18px rgba(0,200,255,0.7);
+    position: relative;
+    display: inline-block;
+}
+
+.neon-title::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 100%;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #00e28a, #41ffd1);
+    box-shadow: 0 0 10px rgba(0,255,200,0.8);
+}
+
+.run-btn {
+    margin-top: 10px;
+    padding: 14px 28px !important;
+    font-size: 18px !important;
+    border-radius: 12px !important;
+    background: linear-gradient(135deg, #00f58a, #41ffd1);
+    color: #000;
+    font-weight: 600;
+    box-shadow: 0 0 12px rgba(0,255,180,0.6);
+    cursor: pointer;
+    border: none;
+    width: 100%; 
+}
+
+.run-btn:hover {
+    transform: scale(1.02);
+    background: linear-gradient(135deg, #35ff9d, #7affde);
+    box-shadow: 0 0 18px rgba(0,255,200,0.9);
+}
+
+body {
+    background-image: url("{% static 'graphs/images/purple_wave.png' %}");
+    background-size: cover;
+    background-position: 80px;
+    background-attachment: fixed;
+    font-family: 'Inter', sans-serif;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+.container {
+    width: 85%;
+    margin: auto;
+    padding-top: 0px !important;
+}
+
+h1 {
+    font-size: 52px;
+    margin: 24px auto 32px;
+    padding: 14px 80px;
+    display: block;
+    width: fit-content;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-weight: 800;
+    background: linear-gradient(120deg, #1f2b7a, #3f51b5, #00e5ff);
+    border-radius: 999px;
+    box-shadow: 0 0 22px rgba(0, 229, 255, 0.55);
+    color: #ffffff;
+    -webkit-text-fill-color: #ffffff;
+    text-shadow: 0 0 10px rgba(0,0,0,0.45);
+}
+
+h1::after { content: none; }
+
+.tab-buttons {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.tab-btn {
+    padding: 12px 26px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 10px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .25s;
+    background: rgba(255,255,255,0.2);
+    color: #ffffff;
+    backdrop-filter: blur(6px);
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, #00e28a, #3dffcb);
+    color: black;
+    transform: scale(1.06);
+}
+
+.tab-btn:hover { transform: scale(1.06); }
+
+.glass-box {
+    background: rgba(255,255,255,0.08);
+    padding: 25px;
+    border-radius: 14px;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.45);
+    margin-bottom: 40px;
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    font-size: 17px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(180,150,255,0.45);
+    border-radius: 12px;
+    color: #e8ebff;
+    outline: none;
+    transition: .25s;
+    margin-bottom: 10px;
+}
+
+input:focus {
+    border-color: #c9b2ff;
+    background: rgba(255,255,255,0.18);
+    box-shadow: 0 0 15px #cdb3ff;
+}
+
+svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible !important;
+    border-radius: 16px;
+    background: rgba(0,0,0,0.20);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.node { cursor: grab; transition: fill 0.5s ease; }
+.node:active { cursor: grabbing; }
+
+.mode-btn {
+    padding: 10px 20px;
+    margin-right: 10px;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 8px;
+    background: rgba(0,0,0,0.2);
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
+}
+.mode-btn.active-mode {
+    background: #00e28a;
+    color: black;
+    border-color: #00e28a;
+    box-shadow: 0 0 10px rgba(0, 226, 138, 0.5);
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+#infoPanel h3 {
+    font-size: 20px !important;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+/* --- PHẦN CSS MỚI COPY TỪ FLEURY (Dành cho Intro Tab) --- */
+.pdf-wrapper {
+    background: rgba(255,255,255,0.06);
+    border-radius: 18px;
+    padding: 35px;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 8px 35px rgba(0,0,0,0.45);
+    backdrop-filter: blur(14px);
+    margin-top: 0px; /* Chỉnh lại chút cho đẹp */
+}
+
+.pdf-header {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 25px;
+    color: #dff3ff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#pdfTextBox {
+    white-space: pre-wrap;
+    font-size: 18px;
+    line-height: 1.85;
+    padding: 25px;
+    color: #ffffff;
+    background: rgba(0,0,0,0.28);
+    border-radius: 14px;
+    border-left: 4px solid #70d6ff;
+    box-shadow: inset 0 0 22px rgba(0,0,0,0.4);
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+    <!-- TIÊU ĐỀ TRANG -->
+    <h1>GRAPH VISUALIZE DFS ALGORITHM</h1>
+
+    <!-- NÚT CHUYỂN TAB -->
+    <div class="tab-buttons">
+        <button id="visualBtn" class="tab-btn active" onclick="showVisual()">Trực quan hoá</button>
+        <button id="introBtn" class="tab-btn" onclick="showIntro()">Giới thiệu thuật toán</button>
+    </div>
+
+    <!-- PANEL TRỰC QUAN HOÁ -->
+    <div id="visualPanel">
+
+        <div class="glass-box" style="margin-top: 5px;">
+
+            <h3 class="neon-title">NGUYÊN LÝ HOẠT ĐỘNG CỦA DFS:</h3>
+            <h3>
+                <p><b></b>1. Bắt đầu từ một đỉnh xuất phát (Start Node).</p>
+                <p><b></b>2. Đẩy đỉnh đó vào ngăn xếp (Stack) và đánh dấu là đã thăm.</p>
+                <p><b></b>3. Lấy một đỉnh u từ ngăn xếp ra xét.</p>
+                <p><b></b>4. Tìm đỉnh kề v của u mà chưa được thăm:</p>
+                <p><b></b>&nbsp;&nbsp;&nbsp;- Nếu có, đẩy v vào ngăn xếp và lặp lại bước 3.</p>
+                <p><b></b>&nbsp;&nbsp;&nbsp;- Nếu không còn đỉnh kề nào chưa thăm, quay lui (Backtrack).</p>
+                <p><b></b>5. Lặp lại cho đến khi ngăn xếp rỗng.</p>
+            </h3>
+
+            <!-- INPUTS -->
+            <p class="neon-title"><b>NHẬP CÁC ĐỈNH:</b> (VD: A,B,C,D,E)</p>
+            <input id="nodes" placeholder="A, B, C, D, E" value="A, B, C, D, E, F">
+
+            <p class="neon-title"><b>NHẬP CÁC CẠNH:</b> (VD: A-B, B-C)</p>
+            <input id="edges" placeholder="A-B, B-C, C-D" value="A-B, A-C, B-D, B-E, C-F, E-F">
+            
+            <div style="display: flex; gap: 20px; align-items: flex-end; margin-top: 15px;">
+                <div style="flex: 1;">
+                    <p class="neon-title" style="font-size: 16px;"><b>ĐỈNH BẮT ĐẦU:</b></p>
+                    <input id="startNode" placeholder="VD: A" value="A" style="margin-bottom: 0;">
+                </div>
+                
+                <div style="flex: 1;">
+                     <p class="neon-title" style="font-size: 16px;"><b>CHẾ ĐỘ:</b></p>
+                     <div style="display: flex;">
+                        <button id="btn-directed" class="mode-btn active-mode" onclick="setMode('directed')">Có hướng</button>
+                        <button id="btn-undirected" class="mode-btn" onclick="setMode('undirected')">Vô hướng</button>
+                     </div>
+                </div>
+
+                <div style="flex: 1;">
+                    <button class="run-btn" onclick="runDFS()">CHẠY THUẬT TOÁN DFS</button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="glass-box" style="
+            display: flex;
+            gap: 25px;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 25px;
+        ">
+
+            <!-- KHUNG VẼ ĐỒ THỊ -->
+            <div style="
+                flex: 2.3;
+                height: 800px;
+                padding: 0;
+                border-radius: 16px;
+                background: rgba(0,0,0,0.20);
+                border: 1px solid rgba(255,255,255,0.12);
+                overflow: hidden;
+                position: relative;
+            ">
+                <svg id="graphArea"></svg>
+            </div>
+
+            <!-- KHUNG THÔNG TIN -->
+            <div id="infoPanel" style="
+                flex: 1;
+                padding: 22px;
+                height: 800px;
+                overflow-y: auto;
+                border-radius: 14px;
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.15);
+            ">
+                <h3 style="margin-bottom: 10px;">THÔNG TIN CHI TIẾT</h3>
+                <div id="infoContent">
+                    <p style="opacity: 0.7; font-style: italic;">
+                        Nhập dữ liệu và nhấn "Chạy thuật toán DFS" để xem quá trình duyệt và ngăn xếp (Stack).
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- PANEL GIỚI THIỆU (Đã update style giống Fleury) -->
+    <div id="introPanel" style="display:none;">
+        <div class="glass-box">
+            <div class="pdf-wrapper">
+                <div class="pdf-header">
+                    <i></i> Giới thiệu thuật toán DFS
+                </div>
+                <div id="pdfTextBox">Đang tải nội dung...</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- THƯ VIỆN D3.JS -->
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<!-- CODE LOGIC DFS -->
+<script>
+    // --- 1. QUẢN LÝ TAB & MODE ---
+    let selectedMode = "directed";
+
+    function showVisual() {
+        document.getElementById("visualPanel").style.display = "block";
+        document.getElementById("introPanel").style.display = "none";
+        document.getElementById("visualBtn").classList.add("active");
+        document.getElementById("introBtn").classList.remove("active");
+    }
+
+    function showIntro() {
+        document.getElementById("visualPanel").style.display = "none";
+        document.getElementById("introPanel").style.display = "block";
+        document.getElementById("visualBtn").classList.remove("active");
+        document.getElementById("introBtn").classList.add("active");
+
+        loadPdfText();
+    }
+
+    // --- HÀM LOAD PDF (UPDATE THEO FLEURY) ---
+    function loadPdfText() {
+        // Gọi API của DFS nhưng xử lý kết quả giống Fleury
+        fetch("/api/dfs/pdf/") 
+            .then(res => res.json())
+            .then(data => {
+                // Logic hiển thị HTML hoặc Text (giống file Fleury)
+                document.getElementById("pdfTextBox").innerHTML =
+                    data.html ? data.html : `<pre>${data.text || "Không có nội dung."}</pre>`;
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById("pdfTextBox").textContent = "Lỗi tải tài liệu!";
+            });
+    }
+
+    function setMode(mode) {
+        selectedMode = mode;
+        document.getElementById("btn-directed").classList.remove("active-mode");
+        document.getElementById("btn-undirected").classList.remove("active-mode");
+        document.getElementById("btn-" + mode).classList.add("active-mode");
+    }
+
+    // --- 2. HÀM CHẠY CHÍNH (GỌI API) ---
+    function runDFS() {
+        const nodesVal = document.getElementById("nodes").value;
+        const edgesVal = document.getElementById("edges").value;
+        const startNode = document.getElementById("startNode").value.trim();
+
+        if (!startNode) {
+            alert("Vui lòng nhập đỉnh bắt đầu!");
+            return;
+        }
+
+        // Gọi API Django
+        fetch("/api/graph/dfs/", { 
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                nodes: nodesVal.split(","),
+                edges: edgesVal.split(","),
+                startNode: startNode,
+                mode: selectedMode
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert("Lỗi: " + data.error);
+                return;
+            }
+
+            drawGraph(data.nodes, data.edges);
+            animateDFS(data.result);
+            updateInfo({
+                mode: selectedMode,
+                ...data.analysis,
+                dfs_path: data.result.path,
+                dfs_steps: data.result.steps
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Lỗi kết nối Server! Xem Console (F12).");
+        });
+    }
+
+    // --- 3. HÀM VẼ ĐỒ THỊ (D3.JS) ---
+    function drawGraph(nodes, edges) {
+        d3.select("#graphArea").selectAll("*").remove();
+
+        const svgElement = document.getElementById("graphArea");
+        const width = svgElement.clientWidth || 1000;
+        const height = svgElement.clientHeight || 800;
+        const svg = d3.select("#graphArea").attr("viewBox", `0 0 ${width} ${height}`);
+
+        const d3Edges = edges.map(e => ({ 
+            source: e.source, target: e.target, id: `${e.source}-${e.target}` 
+        }));
+        const d3Nodes = nodes.map(n => ({ id: n.id }));
+
+        const simulation = d3.forceSimulation(d3Nodes)
+            .force("link", d3.forceLink(d3Edges).id(d => d.id).distance(180))
+            .force("charge", d3.forceManyBody().strength(-500))
+            .force("center", d3.forceCenter(width / 2, height / 2));
+
+        // Arrow Marker
+        svg.append("defs").selectAll("marker")
+            .data(["arrow"])
+            .enter().append("marker")
+            .attr("id", "arrow")
+            .attr("viewBox", "0 -5 10 10")
+            .attr("refX", 28) 
+            .attr("refY", 0)
+            .attr("markerWidth", 6)
+            .attr("markerHeight", 6)
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", "M0,-5L10,0L0,5")
+            .attr("fill", "#00ff88");
+
+        const link = svg.append("g")
+            .selectAll("line")
+            .data(d3Edges)
+            .enter().append("line")
+            .attr("stroke", "#00ff88")
+            .attr("stroke-width", 2)
+            .attr("marker-end", selectedMode === "directed" ? "url(#arrow)" : null);
+
+        const node = svg.append("g")
+            .selectAll("circle")
+            .data(d3Nodes)
+            .enter().append("circle")
+            .attr("r", 22)
+            .attr("class", "node") 
+            .attr("fill", "#555")
+            .attr("stroke", "#fff")
+            .attr("stroke-width", 2)
+            .call(d3.drag()
+                .on("start", (event, d) => {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x; d.fy = d.y;
+                })
+                .on("drag", (event, d) => {
+                    d.fx = event.x; d.fy = event.y;
+                })
+                .on("end", (event, d) => {
+                    if (!event.active) simulation.alphaTarget(0);
+                    d.fx = null; d.fy = null;
+                }));
+
+        const label = svg.append("g")
+            .selectAll("text")
+            .data(d3Nodes)
+            .enter().append("text")
+            .text(d => d.id)
+            .attr("fill", "#ffffff")
+            .attr("font-size", "18px")
+            .attr("dy", 6)
+            .attr("text-anchor", "middle")
+            .style("pointer-events", "none")
+            .style("font-weight", "bold");
+
+        simulation.on("tick", () => {
+            link
+                .attr("x1", d => d.source.x).attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+            node.attr("cx", d => d.x).attr("cy", d => d.y);
+            label.attr("x", d => d.x).attr("y", d => d.y);
+        });
+    }
+
+    // --- 4. HÀM ANIMATION ---
+    function animateDFS(result) {
+        if (!result || !result.steps) return;
+        const steps = result.steps;
+        const nodes = d3.selectAll(".node"); 
+        
+        let stepIndex = 0;
+        const DELAY = 1200;
+
+        function showStep() {
+            if (stepIndex >= steps.length) return;
+            const s = steps[stepIndex];
+
+            nodes.transition().duration(500)
+                .attr("fill", d => {
+                    if (!d) return "#555";
+                    if (d.id === s.current_node) return "#ff9100"; // Đang xét
+                    if (s.visited.includes(d.id)) return "#00e28a"; // Đã duyệt
+                    return "#555";
+                })
+                .attr("r", d => d && d.id === s.current_node ? 30 : 22);
+
+            stepIndex++;
+            setTimeout(showStep, DELAY);
+        }
+        showStep();
+    }
+
+    // --- 5. CẬP NHẬT THÔNG TIN ---
+    function updateInfo(info) {
+        const box = document.getElementById("infoContent");
+        
+        let stepsRows = "";
+        (info.dfs_steps || []).forEach((s, i) => {
+            const stackStr = `[${s.stack.join(", ")}]`;
+            const visitedStr = `[${s.visited.join(", ")}]`;
+            stepsRows += `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <td style="padding:8px;">${i}</td>
+                    <td style="padding:8px; color:#ff9100; font-weight:bold;">${s.current_node || "-"}</td>
+                    <td style="padding:8px; font-family:monospace;">${stackStr}</td>
+                    <td style="padding:8px; color:#00e28a; font-family:monospace;">${visitedStr}</td>
+                </tr>
+            `;
+        });
+
+        const stepsTable = `
+            <table style="width:100%; border-collapse:collapse; font-size:14px; text-align:center;">
+                <tr style="background:rgba(255,255,255,0.1); color:#70d6ff;">
+                    <th>#</th>
+                    <th>Đỉnh xét</th>
+                    <th>Stack</th>
+                    <th>Đã duyệt</th>
+                </tr>
+                ${stepsRows}
+            </table>
+        `;
+
+        // Tạo bảng danh sách kề
+        let adjRows = "";
+        const adjList = info.adj_list || {};
+        for (const [node, neighbors] of Object.entries(adjList)) {
+            adjRows += `<tr><td style="padding:6px; border:1px solid #555;">${node}</td><td style="padding:6px; border:1px solid #555;">${neighbors.join(", ")}</td></tr>`;
+        }
+        const adjTable = `<table style="width:100%; border-collapse:collapse; margin-top:10px;">
+             <tr style="background:#1d2b57;"><th>Đỉnh</th><th>Đỉnh kề</th></tr>${adjRows}</table>`;
+
+        box.innerHTML = `
+            <p><b>Mode:</b> ${(info.mode || "").toUpperCase()}</p>
+            <p><b>Thống kê:</b> ${info.num_nodes} Đỉnh | ${info.num_edges} Cạnh</p>
+            <hr>
+            <p><b>Kết quả DFS:</b> <span style="color:#00e28a; font-size:18px; font-weight:bold;">${(info.dfs_path || []).join(" &rarr; ")}</span></p>
+            <div style="max-height: 350px; overflow-y: auto; margin-top:10px;">${stepsTable}</div>
+            <hr>
+            <p><b>Danh sách kề:</b></p>
+            ${adjTable}
+        `;
+    }
+</script>
+
+</body>
+</html>

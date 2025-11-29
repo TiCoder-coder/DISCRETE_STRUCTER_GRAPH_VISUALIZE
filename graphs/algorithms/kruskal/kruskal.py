@@ -1,74 +1,91 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
-# Cạnh (edge)
-Edge = Tuple[int, int, int]  # (u, v, weight)
+# Cạnh (Edge): (u, v, weight)
+Edge = Tuple[int, int, int]
 
-def kruskal(n: int, edges: List[Edge]) -> Tuple[int, List[Edge]]:
-    """
-    Thuật toán Kruskal tìm cây khung nhỏ nhất (MST)
-    Trả về: (tổng trọng số MST, danh sách các cạnh trong MST)
-    Nếu đồ thị không liên thông → trả về -1
-    """
-    # Bước 1: Sắp xếp các cạnh theo trọng số tăng dần
-    edges.sort(key=lambda e: e[2])
-    
-    # Bước 2: DSU (Disjoint Set Union)
-    parent = list(range(n + 1))   # parent[i] = cha của i
-    size = [1] * (n + 1)          # size[i] = kích thước tập hợp chứa i
 
-    def find(x: int) -> int:
+class KruskalAlgorithm:
+    def __init__(self, G):
+        """
+        G là graph NetworkX bạn truyền từ view Django
+        """
+        self.G = G
+        self.nodes = list(G.nodes())
+        self.edges = []
+
+        # Lấy danh sách cạnh từ graph NX
+        for u, v, data in G.edges(data=True):
+            w = data.get("weight", 1)
+            self.edges.append((u, v, w))
+
+        # Steps để animate
+        self.steps: List[Dict] = []
+
+    # ================= DSU ==================
+    def find(self, parent, x):
         if parent[x] != x:
-            parent[x] = find(parent[x])   # path compression
+            parent[x] = self.find(parent, parent[x])
         return parent[x]
 
-    def union(x: int, y: int) -> bool:
-        px, py = find(x), find(y)
+    def union(self, parent, size, x, y):
+        px, py = self.find(parent, x), self.find(parent, y)
         if px == py:
-            return False                  # đã cùng tập hợp → tạo chu trình
-        # union by size
+            return False
+
         if size[px] < size[py]:
             px, py = py, px
+
         parent[py] = px
         size[px] += size[py]
         return True
 
-    # Bước 3: Duyệt từng cạnh và thêm vào MST nếu không tạo chu trình
-    mst_edges: List[Edge] = []
-    total_weight = 0
+    # ================= KRUSKAL RUN ==================
+    def run(self):
+        edges = sorted(self.edges, key=lambda e: e[2])
 
-    for u, v, w in edges:
-        if len(mst_edges) == n - 1:      # đã đủ n-1 cạnh
-            break
-        if union(u, v):
-            mst_edges.append((u, v, w))
-            total_weight += w
+        # Chuẩn bị DSU
+        parent = {x: x for x in self.nodes}
+        size = {x: 1 for x in self.nodes}
 
-    # Kiểm tra xem có tạo được cây khung không (đồ thị liên thông?)
-    if len(mst_edges) != n - 1:
-        return -1, []                     # không liên thông
+        mst_edges: List[Edge] = []
+        total_weight = 0
 
-    return total_weight, mst_edges
+        # Bắt đầu Kruskal
+        for (u, v, w) in edges:
 
+            # Step: đang xét cạnh
+            self.steps.append({
+                "action": "consider",
+                "edge": (u, v, w)
+            })
 
-# ================== PHẦN NHẬP XUẤT (main) ==================
-def main():
-    # Nhập dữ liệu
-    n, m = map(int, input().split())
-    edges = []
-    for _ in range(m):
-        u, v, w = map(int, input().split())
-        edges.append((u, v, w))
+            if self.union(parent, size, u, v):
+                mst_edges.append((u, v, w))
+                total_weight += w
 
-    # Chạy Kruskal
-    total, mst = kruskal(n, edges)
+                # Step: chọn cạnh
+                self.steps.append({
+                    "action": "choose",
+                    "edge": (u, v, w)
+                })
+            else:
+                # Step: loại cạnh (tạo chu trình)
+                self.steps.append({
+                    "action": "reject",
+                    "edge": (u, v, w)
+                })
 
-    if total == -1:
-        print("do thi khong lien thong")
-    else:
-        print(total)
-        for u, v, w in mst:
-            print(u, v, w)
+        # Kiểm tra liên thông
+        if len(mst_edges) != len(self.nodes) - 1:
+            return {
+                "mst_cost": -1,
+                "mst_edges": [],
+                "steps": self.steps,
+                "message": "Đồ thị không liên thông"
+            }
 
-
-if __name__ == "__main__":
-    main()
+        return {
+            "mst_cost": total_weight,
+            "mst_edges": mst_edges,
+            "steps": self.steps
+        }

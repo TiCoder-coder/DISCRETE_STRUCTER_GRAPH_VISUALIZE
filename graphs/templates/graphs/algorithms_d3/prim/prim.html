@@ -1,160 +1,440 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Prim - Cạnh xanh lá to bự, chạy ngon mọi đồ thị</title>
-<script src="https://unpkg.com/cytoscape@3.23.0/dist/cytoscape.min.js"></script>
+<title>PRIM MINIMUM SPANNING TREE</title>
+
 <style>
-  body{margin:0;font-family:Arial;background:#111;color:#fff;display:flex;height:100vh;overflow:hidden}
-  #cy{flex:7}
-  #panel{flex:3;padding:40px 20px;background:#1e1e1e;display:flex;flex-direction:column;align-items:center}
-  h1{color:#0ff;margin-bottom:30px;text-align:center;font-size:32px}
-  #info{font-size:30px;color:#0f0;margin:30px 0;font-weight:bold}
-  button{width:85%;padding:20px;margin:12px 0;font-size:22px;background:#333;border:none;color:white;border-radius:12px;cursor:pointer}
-  button:hover{background:#555}
-  
-  /* SIÊU QUAN TRỌNG - CẠNH XANH LÁ TO + SÁNG */
-  edge.mst-edge {
-    line-color: #00ff00 !important;
-    width: 20px !important;
-    opacity: 1 !important;
-    z-index: 10;
-  }
-  edge.highlighted {
-    line-color: yellow !important;
-    width: 22px !important;
-    z-index: 20;
-  }
-  node.mst-node {
-    background-color: #00ff88 !important;
-    border-color: #00ff00 !important;
-    border-width: 8px !important;
-  }
+#graphArea { overflow: hidden !important; }
+
+.run-btn {
+    margin-top: 18px;
+    margin-bottom: 10px;
+    padding: 14px 28px !important;
+    font-size: 18px !important;
+    border-radius: 12px !important;
+    background: linear-gradient(135deg, #00f58a, #41ffd1);
+    color: #000;
+    font-weight: 600;
+    box-shadow: 0 0 12px rgba(0,255,180,0.6);
+    cursor: pointer;
+    transition: .25s;
+}
+
+.run-btn:hover {
+    transform: scale(1.10);
+    background: linear-gradient(135deg, #35ff9d, #7affde);
+    box-shadow: 0 0 18px rgba(0,255,200,0.9);
+}
+
+body {
+    background-image: url("{% static 'graphs/images/purple_wave.png' %}");
+    background-size: cover;
+    background-position: 80px;
+    background-attachment: fixed;
+    font-family: 'Inter', sans-serif;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+.container {
+    width: 85%;
+    margin: auto;
+    padding-top: 0px !important;
+}
+
+h1 {
+    font-size: 52px;
+    margin: 24px auto 32px;
+    padding: 14px 80px;
+    display: block;
+    width: fit-content;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-weight: 800;
+    background: linear-gradient(120deg, #1f2b7a, #3f51b5, #00e5ff);
+    border-radius: 999px;
+    box-shadow: 0 0 22px rgba(0, 229, 255, 0.55);
+    color: #ffffff;
+    -webkit-text-fill-color: #faf7f7;
+    text-shadow: 0 0 10px rgba(0,0,0,0.45);
+}
+
+.tab-buttons {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.tab-btn {
+    padding: 12px 26px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 10px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .25s;
+    background: rgba(255,255,255,0.2);
+    color: #ffffff;
+    backdrop-filter: blur(6px);
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, #00e28a, #3dffcb);
+    color: black;
+    transform: scale(1.06);
+}
+
+.tab-btn:hover { transform: scale(1.06); }
+
+.glass-box {
+    background: rgba(255,255,255,0.08);
+    padding: 25px;
+    border-radius: 14px;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.45);
+    margin-bottom: 40px;
+}
+
+.neon-title {
+    font-size: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, #00fff0, #41ffd1, #ffe66d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 10px rgba(0,255,200,0.8), 0 0 18px rgba(0,200,255,0.7);
+    display: inline-block;
+    position: relative;
+}
+
+.neon-title::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 100%;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #00e28a, #41ffd1);
+    box-shadow: 0 0 10px rgba(0,255,200,0.8);
+}
+
+input, select {
+    width: 100%;
+    padding: 14px;
+    font-size: 17px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(180,150,255,0.45);
+    border-radius: 12px;
+    color: #e8ebff;
+    outline: none;
+    transition: .25s;
+}
+
+input:focus, select:focus {
+    border-color: #c9b2ff;
+    background: rgba(255,255,255,0.18);
+    box-shadow: 0 0 15px #cdb3ff;
+}
+
+svg {
+    width: auto;
+    height: auto;
+    min-width: 100%;
+    min-height: 600px;
+    overflow: visible !important;
+    border-radius: 16px;
+    background: rgba(0,0,0,0.20);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.node circle { transition: all 0.3s ease; }
+.node:hover circle { filter: brightness(1.4) drop-shadow(0 0 12px #0ff); }
+
+.highlight-node circle { fill: #f7d206 !important; filter: drop-shadow(0 0 20px #f7d206); }
+.edge { stroke: #eaee0d; stroke-width: 4; }
+.highlight-edge { stroke: #ff4704 !important; stroke-width: 8 !important; animation: pulse 1.5s infinite; }
+
+@keyframes pulse {
+    0% { stroke-width: 6; opacity: 1; }
+    50% { stroke-width: 10; opacity: 0.8; }
+    100% { stroke-width: 6; opacity: 1; }
+}
+
+#totalWeight {
+    font-size: 26px;
+    font-weight: bold;
+    color: #00ffea;
+    text-shadow: 0 0 15px #00ffea;
+    margin-top: 15px;
+}
+
+.pdf-wrapper {
+    background: linear-gradient(135deg, rgba(32, 43, 122, 0.75), rgba(94, 52, 182, 0.6));
+    padding: 40px;
+    border-radius: 22px;
+    border: 2px solid rgba(0, 255, 255, 0.35);
+    box-shadow: 0 0 22px rgba(0, 255, 255, 0.25);
+    backdrop-filter: blur(12px);
+}
+.pdf-header {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(0,0,0,0.6);
+}
+.pdf-header i {
+    font-size: 30px;
+    color: #79d7ff;
+    filter: drop-shadow(0 0 6px #79d7ff);
+}
+
+#pdfTextBox {
+    background: rgba(0, 0, 0, 0.55); 
+    padding: 28px;
+    border-radius: 16px;
+    font-size: 18px;
+    line-height: 1.8;
+    color: #e6e6e6;        
+    border-left: 4px solid #3df5ff;
+    box-shadow: inset 0 0 20px rgba(0,255,255,0.25);
+    white-space: pre-wrap;
+}
+#pdfTextBox * {
+    color: #e6e6e6 !important;     
+    background: transparent !important;
+}
+
+
+.edge-highlight { stroke: #ffff00 !important; stroke-width: 7px !important; filter: drop-shadow(0 0 18px yellow); }
+.edge-mst      { stroke: #00ff88 !important; stroke-width: 7px !important; filter: drop-shadow(0 0 22px #00ff88); }
+.edge-rejected { stroke: #ff3366 !important; stroke-width: 3px; opacity: 0.35; }
+.edge-candidate { stroke: #ffff88 !important; stroke-width: 5px; opacity: 0.7; }
 </style>
 </head>
+
 <body>
-<div id="cy"></div>
-<div id="panel">
-  <h1>Thuật toán Prim</h1>
-  <div id="info">Tổng trọng số: 0</div>
-  <button onclick="step()">Bước tiếp theo</button>
-  <button onclick="runAll()">Chạy hết</button>
-  <button onclick="resetAll()">Reset</button>
-  <button onclick="random()">Đồ thị ngẫu nhiên</button>
+<div class="container">
+
+    <h1>PRIM MINIMUM SPANNING TREE</h1>
+
+    <div class="tab-buttons">
+        <button id="visualBtn" class="tab-btn active" onclick="showVisual()">Trực quan hoá</button>
+        <button id="introBtn" class="tab-btn" onclick="showIntro()">Giới thiệu thuật toán</button>
+    </div>
+
+    <!-- TAB TRỰC QUAN HOÁ -->
+    <div id="visualPanel">
+
+        <div class="glass-box">
+            <h3 class="neon-title">NHẬP DANH SÁCH ĐỈNH</h3>
+            <input id="nodes" placeholder="VD: A,B,C,D,E,F">
+
+            <h3 class="neon-title">NHẬP CÁC CẠNH VÀ TRỌNG SỐ</h3>
+            <input id="edges" placeholder="VD: A-B-4, A-C-8, B-D-8, C-D-2, C-E-7, D-E-6">
+
+            <h3 class="neon-title">CHỌN ĐỈNH BẮT ĐẦU</h3>
+            <select id="startNode">
+                <option value="">-- Chọn đỉnh bắt đầu --</option>
+            </select>
+
+            <div style="text-align:center; margin-top:25px;">
+                <button class="run-btn" onclick="runPrim()">CHẠY PRIM</button>
+            </div>
+        </div>
+
+        <div class="glass-box" style="display:flex; gap:30px; align-items:flex-start;">
+            <div style="flex:2.5;">
+                <svg id="graphArea"></svg>
+                <div style="text-align:center; margin-top:20px;">
+                    <span style="font-size:24px;">Tổng trọng số MST:</span>
+                    <span id="totalWeight" style="font-size:30px; color:#00ffea;">0</span>
+                </div>
+            </div>
+
+            <div style="flex:1; background:rgba(255,255,255,0.08); padding:20px; border-radius:14px; height:600px; overflow-y:auto;">
+                <h3 style="color:#79d7ff; margin-top:0;">QUÁ TRÌNH THỰC HIỆN</h3>
+                <div id="infoContent" style="font-size:16px; line-height:1.7; color:#e0e7ff;">
+                    Chưa chạy thuật toán...
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- TAB Intro -->
+    <div id="introPanel" style="display:none;">
+    <div class="glass-box" 
+         style="background: linear-gradient(135deg, rgba(32,43,122,0.75), rgba(94,52,182,0.6)); 
+                padding: 40px; 
+                border-radius: 22px;
+                border: 2px solid rgba(0,255,255,0.35);
+                box-shadow: 0 0 22px rgba(0,255,255,0.25);
+                backdrop-filter: blur(12px);">
+
+        <div class="pdf-wrapper" style="background: transparent; border: none; box-shadow: none; padding: 0;">
+            
+            <div class="pdf-header" 
+                 style="font-size: 32px; 
+                        font-weight: 700; 
+                        margin-bottom: 22px; 
+                        color: #ffffff;
+                        text-shadow: 0 0 10px rgba(0,0,0,0.6);">
+                Giới thiệu thuật toán Prim
+            </div>
+
+            <div id="pdfTextBox"
+                 style= "
+                    background:
+                    rgba(0, 0, 0, 0.35);
+                    backdrop-filter: blur(8px);
+                    padding: 26px;
+                    border-radius: 16px;
+                    font-size: 18px;
+                    line-height: 1.85;
+                    color: #e8e8e8;
+                    border-left: 4px solid #3df5ff;
+                    box-shadow: inset 0 0 12px rgba(0, 255, 255, 0.22);
+                ">
+                Đang tải nội dung giới thiệu...
+            </div>
+
+
 </div>
 
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="{% static 'graphs/js/algorithms_d3/prim/prim.js' %}"></script>
+
 <script>
-let cy, totalWeight = 0;
-const info = document.getElementById('info');
-let inMST = new Set();
-let candidates = [];
-
-function prepare() {
-  inMST = new Set(['A']);  // luôn bắt đầu từ A
-  candidates = [];
-  totalWeight = 0;
-  info.textContent = "Tổng trọng số: 0";
-  
-  cy.nodes().style({'background-color': '#666', 'border-width': 0});
-  cy.edges().style({'line-color': '#888', 'width': 7});
-  
-  // Đánh dấu A là đã vào MST
-  cy.getElementById('A').style({'background-color': '#00ff88', 'border-color': '#00ff00', 'border-width': 8});
-  updateCandidates();
-}
-
-function updateCandidates() {
-  candidates = [];
-  cy.edges().forEach(edge => {
-    const u = edge.source().id();
-    const v = edge.target().id();
-    const w = parseInt(edge.data('weight'));
-    if (inMST.has(u) && !inMST.has(v)) candidates.push({edge, w, newNode: v});
-    if (inMST.has(v) && !inMST.has(u)) candidates.push({edge, w, newNode: u});
-  });
-  candidates.sort((a,b) => a.w - b.w);
-}
-
-function step() {
-  if (candidates.length === 0) {
-    info.textContent = `HOÀN THÀNH! Tổng = ${totalWeight}`;
-    return;
-  }
-
-  const {edge, w, newNode} = candidates.shift();
-
-  // Tô vàng cạnh đang xét
-  edge.style({'line-color': 'yellow', 'width': 22});
-
-  setTimeout(() => {
-    // Thêm vào cây khung
-    inMST.add(newNode);
-    totalWeight += w;
-    info.textContent = "Tổng trọng số: " + totalWeight;
-
-    // Cạnh xanh lá bự
-    edge.style({'line-color': '#00ff00', 'width': 20});
-    // Đỉnh mới xanh lá
-    cy.getElementById(newNode).style({
-      'background-color': '#00ff88',
-      'border-color': '#00ff00',
-      'border-width': 8
-    });
-
-    updateCandidates();
-  }, 900);
-}
-
-function runAll() {
-  const timer = setInterval(() => {
-    if (candidates.length === 0) {
-      clearInterval(timer);
-      info.textContent = `HOÀN THÀNH! Tổng = ${totalWeight}`;
-      return;
-    }
-    step();
-  }, 1000);
-}
-
-function resetAll() { prepare(); }
-
-function random() {
-  const n = 5 + Math.floor(Math.random()*5);
-  const labels = "ABCDEFGHIJK".slice(0,n);
-  const nodes = labels.split('').map(c => ({data:{id:c}}));
-  const edges = [];
-  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)if(Math.random()<0.7){
-    const w = Math.floor(Math.random()*40)+1;
-    edges.push({data:{id:labels[i]+labels[j], source:labels[i], target:labels[j], weight:w}});
-  }
-  cy.json({nodes, edges});
-  cy.layout({name:'cose', animate:true, animationDuration:1200}).run();
-  setTimeout(prepare, 1400);
-}
-
-// ĐỒ THỊ MẪU
-cy = cytoscape({
-  container: document.getElementById('cy'),
-  style: [
-    {selector:'node', style:{'background-color':'#666','label':'data(id)','color':'white','font-size':36,'text-outline-width':5,'text-outline-color':'#000'}},
-    {selector:'edge', style:{'width':7,'line-color':'#888','label':'data(weight)','font-size':24,'color':'yellow','text-outline-width':3,'text-outline-color':'#000','curve-style':'bezier'}}
-  ],
-  elements: {
-    nodes: [{data:{id:'A'}},{data:{id:'B'}},{data:{id:'C'}},{data:{id:'D'}},{data:{id:'E'}}],
-    edges: [
-      {data:{id:'AB',source:'A',target:'B',weight:4}},
-      {data:{id:'AC',source:'A',target:'C',weight:8}},
-      {data:{id:'BC',source:'B',target:'C',weight:11}},
-      {data:{id:'BD',source:'B',target:'D',weight:8}},
-      {data:{id:'CD',source:'C',target:'D',weight:7}},
-      {data:{id:'CE',source:'C',target:'E',weight:2}},
-      {data:{id:'DE',source:'D',target:'E',weight:6}}
-    ]
-  },
-  layout: {name:'cose'}
+// Cập nhật dropdown khi nhập đỉnh
+document.getElementById("nodes").addEventListener("input", function() {
+    const nodes = this.value.split(",").map(s => s.trim()).filter(Boolean);
+    const select = document.getElementById("startNode");
+    select.innerHTML = '<option value="">-- Chọn đỉnh bắt đầu --</option>';
+    nodes.forEach(n => select.add(new Option(n, n)));
 });
 
-cy.ready(() => prepare());
+// Tab
+function showVisual() {
+    document.getElementById("visualPanel").style.display = "block";
+    document.getElementById("introPanel").style.display = "none";
+    document.getElementById("visualBtn").classList.add("active");
+    document.getElementById("introBtn").classList.remove("active");
+}
+
+function showIntro() {
+    document.getElementById("visualPanel").style.display = "none";
+    document.getElementById("introPanel").style.display = "block";
+    document.getElementById("visualBtn").classList.remove("active");
+    document.getElementById("introBtn").classList.add("active");
+    loadIntroText();
+}
+
+// Chạy Prim
+function runPrim() {
+    const nodesInput = document.getElementById("nodes").value.trim();
+    const edgesInput = document.getElementById("edges").value.trim();
+    const startNode   = document.getElementById("startNode").value.trim();
+
+    if (!nodesInput || !edgesInput) {
+        alert("Nhập đầy đủ đỉnh và cạnh đi nào anh ơi!");
+        return;
+    }
+    if (!startNode) {
+        alert("Chọn đỉnh bắt đầu đi nào!");
+        return;
+    }
+
+    // Lấy phần tử log – fix lỗi null giống Kruskal
+    const logBox = document.getElementById("infoContent");
+    if (!logBox) {
+        console.error("Không tìm thấy #infoContent trong HTML!");
+        return;
+    }
+
+    logBox.innerHTML = "<span style='color:#79d7ff; font-size:1.2em;'>Đang vẽ đồ thị...</span>";
+    document.getElementById("totalWeight").textContent = "?";
+
+    // Parse dữ liệu giống hệt Kruskal
+    const nodes = nodesInput.split(",").map(s => s.trim()).filter(Boolean);
+    const edges = edgesInput.split(",").map(s => {
+        const p = s.trim().split("-");
+        if (p.length < 2) return null;
+        return {
+            source: p[0].trim(),
+            target: p[1].trim(),
+            weight: p[2] ? parseInt(p[2]) : 1
+        };
+    }).filter(Boolean);
+
+    initPrimGraph();          
+    drawPrimGraph(nodes, edges);
+
+    setTimeout(() => {
+        logBox.innerHTML = `<span style='color:#79d7ff; font-size:1.2em;'>
+            Đã vẽ xong đồ thị! Bắt đầu Prim từ đỉnh <b>${startNode}</b>...</span><br><br>`;
+    }, 800);
+
+    fetch("/api/graph/prim/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")?.value || ""
+        },
+        body: JSON.stringify({
+            nodes: nodes,
+            edges: edgesInput,
+            startNode: startNode
+        })
+    })
+    .then(r => {
+        if (!r.ok) throw new Error("Server lỗi");
+        return r.json();
+    })
+    .then(data => {
+        if (data.error || data.mst_cost === -1) {
+            logBox.innerHTML = "<span style='color:#ff4444; font-size:1.5em;'>ĐỒ THỊ KHÔNG LIÊN THÔNG HOẶC LỖI!</span>";
+            return;
+        }
+
+        runPrimFromBackend(data.steps, data.mst_cost, startNode);
+
+        document.getElementById("totalWeight").textContent = data.mst_cost;
+    })
+    .catch(err => {
+        console.error(err);
+        logBox.innerHTML += "<br><span style='color:#ff6688'>Backend lỗi, nhưng đồ thị vẫn hiện rồi nha!</span>";
+    });
+}
+
+
+function loadIntroText() {
+    fetch("/api/pdf-text/prim/")
+        .then(res => {
+            if (!res.ok) throw new Error("Không tải được PDF");
+            return res.json();
+        })
+        .then(data => {
+            if (data.html) {
+                document.getElementById("pdfTextBox").innerHTML = data.html;
+            } else if (data.text) {
+                document.getElementById("pdfTextBox").innerHTML = `<pre>${data.text}</pre>`;
+            } else {
+                document.getElementById("pdfTextBox").innerHTML = "Không có nội dung.";
+            }
+        })
+        .catch(() => {
+            document.getElementById("pdfTextBox").innerHTML = 
+                "<span style='color:#ff6688'>Lỗi tải nội dung giới thiệu thuật toán Prim!</span>";
+        });
+}
+
 </script>
 </body>
 </html>

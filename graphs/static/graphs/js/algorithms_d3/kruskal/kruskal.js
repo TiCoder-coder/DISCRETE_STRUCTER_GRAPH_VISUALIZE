@@ -1,103 +1,281 @@
-let kruskalRunning = false;
-let kruskalEdges = [];
-let kruskalSelected = [];
-let parent = {};
+let kruskalSVG, kruskalLink, kruskalNode, kruskalLabel, kruskalWeightLabel;
+let kruskalSimulation;
+let currentStep = 0;
+let isKruskalRunning = false;
 
-function find(u) {
-    if (parent[u] !== u) parent[u] = find(parent[u]);
-    return parent[u];
+const kruskalStepLog = document.getElementById("stepLog");
+const kruskalTotalEl = document.getElementById("totalWeight");
+const kruskalSelectedList = document.getElementById("selectedEdges");
+
+// Hàm khởi tạo SVG
+function initKruskalGraph(containerId = "graphArea") {
+    kruskalSVG = d3.select(`#${containerId}`);
+    kruskalSVG.selectAll("*").remove();
+
+    const width = kruskalSVG.node().clientWidth;
+    const height = kruskalSVG.node().clientHeight;
+
+    const defs = kruskalSVG.append("defs");
+    defs.append("marker")
+        .attr("id", "kruskal-arrow")
+        .attr("viewBox", "0 -5 10 10")
+        .attr("refX", 28)
+        .attr("refY", 0)
+        .attr("markerWidth", 8)
+        .attr("markerHeight", 8)
+        .attr("orient", "auto-start-reverse")
+        .append("path")
+        .attr("d", "M0,-5L10,0L0,5")
+        .attr("fill", "#ffe100");
 }
 
-function union(u, v) {
-    const pu = find(u), pv = find(v);
-    if (pu !== pv) {
-        parent[pu] = pv;
-        return true;
+// Vẽ đồ thị
+function drawKruskalGraph(nodes, edges, isDirected = false) {
+    const width = kruskalSVG.node().clientWidth;
+    const height = kruskalSVG.node().clientHeight;
+
+    const nodeData = nodes.map(id => ({ id }));
+
+    kruskalSimulation = d3.forceSimulation(nodeData)
+    .force("link", d3.forceLink(edges).id(d => d.id).distance(180).strength(1))
+    .force("charge", d3.forceManyBody().strength(-1200)) 
+    .force("center", d3.forceCenter(width / 2, height / 2))
+    .force("collision", d3.forceCollide().radius(80).strength(1))
+    .velocityDecay(0.6)          
+    .alpha(1)                    
+    .alphaDecay(0.05)            
+    .restart();                  
+
+    kruskalLink = kruskalSVG.append("g")
+        .selectAll("line")
+        .data(edges)
+        .enter().append("line")
+        .attr("stroke", "#888")
+        .attr("stroke-width", 4)
+        .classed("kruskal-edge", true);
+
+    if (isDirected) {
+        kruskalLink.attr("marker-end", "url(#kruskal-arrow)");
     }
-    return false;
+
+    kruskalNode = kruskalSVG.append("g")
+        .selectAll("circle")
+        .data(nodeData)
+        .enter().append("circle")
+        .attr("r", 28)
+        .attr("fill", "#ffcc00")
+        .style("cursor", "pointer");
+
+    kruskalLabel = kruskalSVG.append("g")
+        .selectAll("text")
+        .data(nodeData)
+        .enter().append("text")
+        .text(d => d.id)
+        .attr("font-size", 24)
+        .attr("fill", "white")
+        .attr("font-weight", "bold")
+        .attr("text-anchor", "middle")
+        .attr("dy", 8);
+
+    kruskalWeightLabel = kruskalSVG.append("g")
+        .selectAll("text.weight")
+        .data(edges)
+        .enter().append("text")
+        .attr("class", "weight")
+        .text(d => d.weight)
+        .attr("font-size", 18)
+        .attr("fill", "#ffff00")
+        .attr("font-weight", "bold")
+        .attr("text-anchor", "middle")
+        .style("pointer-events", "none");
+
+    kruskalSimulation.on("tick", () => {
+        kruskalLink
+            .attr("x1", d => d.source.x)
+            .attr("y1", d => d.source.y)
+            .attr("x2", d => d.target.x)
+            .attr("y2", d => d.target.y);
+
+        kruskalNode
+            .attr("cx", d => d.x)
+            .attr("cy", d => d.y);
+
+        kruskalLabel
+            .attr("x", d => d.x)
+            .attr("y", d => d.y);
+
+        kruskalWeightLabel
+            .attr("x", d => (d.source.x + d.target.x) / 2)
+            .attr("y", d => (d.source.y + d.target.y) / 2 - 10);
+    });
 }
 
-function resetKruskal() {
-    kruskalRunning = false;
-    kruskalEdges = [];
-    kruskalSelected = [];
-    parent = {};
-    cy.elements().removeClass('highlighted mst-edge faded');
-    updateKruskalInfo("");
+// Reset trạng thái ban đầu
+function resetKruskalState() {
+    currentStep = 0;
+    isKruskalRunning = false;
+    kruskalStepLog.innerHTML = "Đang chờ chạy thuật toán...";
+    kruskalTotalEl.textContent = "0";
+    kruskalSelectedList.innerHTML = "";
+
+    kruskalLink
+        .attr("stroke", "#888")
+        .attr("stroke-width", 4)
+        .classed("edge-highlight edge-mst edge-rejected", false)
+        .style("filter", "none")
+        .style("opacity", 1);
 }
 
-function runKruskalStep() {
-    if (!kruskalRunning) {
-        kruskalRunning = true;
-        kruskalSelected = [];
-        parent = {};
-        cy.nodes().forEach(n => parent[n.id()] = n.id());
-        cy.elements().removeClass('highlighted mst-edge faded');
-
-        // Lấy tất cả cạnh và sắp xếp theo trọng số
-        kruskalEdges = cy.edges().map(edge => ({
-            edge: edge,
-            u: edge.source().id(),
-            v: edge.target().id(),
-            w: parseInt(edge.data('weight') || 0)
-        })).sort((a, b) => a.w - b.w);
-
-        updateKruskalInfo("Bắt đầu thuật toán Kruskal - sắp xếp cạnh theo trọng số tăng dần");
-    }
-
-    if (kruskalEdges.length === 0) {
-        updateKruskalInfo("Hoàn thành! Cây khung nhỏ nhất đã được xây dựng.");
+// Hàm chạy từng bước từ backend steps
+function runKruskalFromBackend(steps, mstEdges, totalCost) {
+    // FIX LỖI NULL: Kiểm tra xem phần tử có tồn tại không
+    const logElement = document.getElementById("infoContent");
+    if (!logElement) {
+        console.error("Không tìm thấy #infoContent trong HTML!");
         return;
     }
 
-    const { edge, u, v, w } = kruskalEdges.shift();
+    logElement.innerHTML = "<span style='color:#79d7ff; font-size:1.2em;'>Bắt đầu thuật toán Kruskal...</span><br><br>";
 
-    // Highlight các cạnh đang xét
-    cy.edges().addClass('faded');
-    edge.addClass('highlighted');
+    let total = 0;
+    let delay = 300; // bắt đầu sau 0.3s để đồ thị ổn định
 
-    setTimeout(() => {
-        if (union(u, v)) {
-            edge.addClass('mst-edge');
-            kruskalSelected.push({ u, v, w });
-            updateKruskalInfo(`
-                Chọn cạnh <strong>${u} — ${v}</strong> (trọng số ${w})<br>
-                Không tạo chu trình → Thêm vào cây khung<br>
-                Tổng trọng số hiện tại: <strong>${kruskalSelected.reduce((a, b) => a + b.w, 0)}</strong>
-            `);
-        } else {
-            updateKruskalInfo(`
-                Bỏ qua cạnh <strong>${u} — ${v}</strong> (trọng số ${w})<br>
-                Lý do: Tạo chu trình
-            `);
-        }
+    steps.forEach((step, index) => {
+        setTimeout(() => {
+            const [u, v, w] = step.edge;
 
-        cy.edges().removeClass('faded highlighted');
-        displayKruskalResult();
-    }, 800);
-}
+            // Tìm cạnh tương ứng (hỗ trợ cả 2 chiều)
+            const link = kruskalLink.filter(d => 
+                (d.source.id === u && d.target.id === v) || 
+                (d.source.id === v && d.target.id === u)
+            );
 
-function runKruskalAll() {
-    function step() {
-        if (kruskalEdges.length > 0) {
-            runKruskalStep();
-            setTimeout(step, 1400);
-        }
-    }
-    if (!kruskalRunning) runKruskalStep();
-    setTimeout(step, 1400);
-}
+            if (link.empty()) {
+                console.warn("Không tìm thấy cạnh:", u, v);
+                return;
+            }
+            link.classed("edge-highlight edge-mst edge-rejected", false);
 
-function displayKruskalResult() {
-    const total = kruskalSelected.reduce((sum, e) => sum + e.w, 0);
-    let html = `<h3>Cây khung nhỏ nhất (Kruskal)</h3><ul>`;
-    kruskalSelected.forEach(e => {
-        html += `<li>${e.u} — ${e.v} : ${e.w}</li>`;
+            if (step.action === "consider") {
+                link.classed("edge-highlight", true)
+                    .transition().duration(600)
+                    .attr("stroke", "#ffff00")
+                    .attr("stroke-width", 7)
+                    .style("opacity", 1)
+                    .style("filter", "none")            
+                    .style("stroke-linecap", "round");
+
+                logElement.innerHTML += `→ Đang xét cạnh <b>${u}—${v}</b> (trọng số = <b>${w}</b>)<br>`;
+            }
+            else if (step.action === "choose") {
+                total += w;
+                link.classed("edge-mst", true)
+                    .transition().duration(600)
+                    .attr("stroke", "#00ff88")
+                    .attr("stroke-width", 7)
+                    .style("opacity", 1)
+                    .style("filter", "none")            
+                    .style("stroke-linecap", "round");
+
+                logElement.innerHTML += ` <span style="color:#00ff88; font-weight:bold">CHỌN</span> → Thêm vào MST<br>`;
+
+                // Cập nhật tổng realtime
+                document.getElementById("totalWeight").textContent = total;
+            }
+            else if (step.action === "reject") {
+                link.classed("edge-rejected", true)
+                    .transition().duration(600)
+                    .attr("stroke", "#ff3366")
+                    .attr("stroke-width", 3)
+                    .style("opacity", 0.4);
+
+                logElement.innerHTML += ` <span style="color:#ff6688; font-weight:bold">BỎ</span> → Tạo chu trình<br>`;
+            }
+
+            // HOÀN THÀNH
+            if (index === steps.length - 1) {
+                setTimeout(() => {
+                    logElement.innerHTML += `<br><br><b style="color:#00ffff; font-size:1.6em;">
+                        HOÀN THÀNH! Tổng trọng số MST = ${totalCost}</b>`;
+                    document.getElementById("totalWeight").textContent = totalCost;
+                }, 1000);
+            }
+        }, delay += 1500);
     });
-    html += `</ul><strong>Tổng trọng số = ${total}</strong>`;
-    document.getElementById('algorithm-result').innerHTML = html;
 }
 
-function updateKruskalInfo(text) {
-    document.getElementById('algorithm-info').innerHTML = `<p>${text}</p>`;
+// Hàm chính gọi từ HTML
+function runKruskalAnimation(nodesInput, edgesInput) {
+    const nodes = nodesInput.split(",").map(s => s.trim()).filter(Boolean);
+    const edgesStr = edgesInput.trim();
+
+    if (nodes.length === 0 || !edgesStr) {
+        alert("Nhập đỉnh và cạnh đi bạn ơi!");
+        return;
+    }
+
+    // Parse edges để vẽ
+    const edges = edgesStr.split(",").map(s => {
+        const p = s.trim().split("-");
+        if (p.length >= 2) {
+            const u = p[0].trim();
+            const v = p[1].trim();
+            const w = p[2] ? parseInt(p[2]) : 1;
+            return { source: u, target: v, weight: w };
+        }
+        return null;
+    }).filter(Boolean);
+
+    // Vẽ đồ thị
+    initKruskalGraph();
+    drawKruskalGraph(nodes, edges);
+
+    // Gọi backend
+    fetch("/api/graph/kruskal/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            nodes: nodes,
+            edges: edgesStr
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.mst_cost === -1) {
+            kruskalStepLog.innerHTML = "<span style='color:#ff4466'>ĐỒ THỊ KHÔNG LIÊN THÔNG!</span>";
+            return;
+        }
+
+        runKruskalFromBackend(data.steps, data.mst_edges, data.mst_cost);
+    })
+    .catch(err => {
+        console.error(err);
+        kruskalStepLog.innerHTML = "Lỗi kết nối backend!";
+    });
 }
+
+// TỰ ĐỘNG TĂNG TỐC KHI ĐỒ THỊ GẦN ỔN ĐỊNH
+kruskalSimulation.on("tick", () => {
+    kruskalLink
+        .attr("x1", d => d.source.x)
+        .attr("y1", d => d.source.y)
+        .attr("x2", d => d.target.x)
+        .attr("y2", d => d.target.y);
+
+    kruskalNode
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y);
+
+    kruskalLabel
+        .attr("x", d => d.x)
+        .attr("y", d => d.y);
+
+    kruskalWeightLabel
+        .attr("x", d => (d.source.x + d.target.x) / 2)
+        .attr("y", d => (d.source.y + d.target.y) / 2 - 10);
+
+    // TĂNG TỐC KHI ĐỒ THỊ GẦN XONG
+    if (kruskalSimulation.alpha() < 0.1) {
+        kruskalSimulation.alphaTarget(0).restart();
+    }
+});

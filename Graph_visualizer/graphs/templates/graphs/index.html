@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>GRAPH ALGORITHMS - HOME</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+body {
+    background-image: url("{% static 'graphs/images/purple_wave.png' %}");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    font-family: 'Inter', sans-serif;
+    color: white;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+.container {
+    width: 92%;
+    margin: auto;
+    text-align: center;
+    padding-top: 80px;
+}
+
+h1 {
+    font-size: 58px;
+    padding: 18px 80px;
+    display: inline-block;
+    margin-bottom: 40px;
+    text-transform: uppercase;
+    font-weight: 900;
+    letter-spacing: 3px;
+
+    background: rgba(10, 20, 70, 0.6);
+    border-radius: 60px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 0 32px rgba(0, 255, 255, 0.45);
+
+    border: 2px solid rgba(0,255,255,0.25);
+}
+
+.section-title {
+    font-size: 34px;
+    font-weight: 800;
+    margin-top: 70px;
+    margin-bottom: 35px;
+    text-transform: uppercase;
+
+    background: linear-gradient(90deg, #8effff, #6ac8ff, #fffeb3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    text-shadow: 0 0 18px rgba(0,255,240,0.5);
+}
+
+.algos-box {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+    padding-bottom: 10px;
+}
+
+.algo-btn {
+    padding: 20px 38px;
+    font-size: 21px;
+    min-width: 280px;
+    font-weight: 600;
+
+    background: linear-gradient(135deg, #00bcd4, #5afad6);
+    color: #001a1a;
+
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+
+    transition: 0.27s ease;
+    box-shadow: 0 0 14px rgba(0,255,210,0.55);
+}
+
+.algo-btn:hover {
+    transform: translateY(-6px) scale(1.08);
+    background: linear-gradient(135deg, #3bffb3, #7affdf);
+    box-shadow: 0 0 26px rgba(0,255,230,0.9);
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+    <h1>GRAPH ALGORITHMS VISUALIZER</h1>
+
+    <div class="section-title">Các thuật toán về duyệt & cấu trúc đồ thị</div>
+
+    <div class="algos-box">
+        <button class="algo-btn" onclick="window.location.href='/fleury/'">Thuật toán Fleury</button>
+        <button class="algo-btn" onclick="window.location.href='/hierholzer/'">Thuật toán Hierholzer</button>
+        <button class="algo-btn" onclick="window.location.href='/bfs/'">Thuật toán BFS</button>
+        <button class="algo-btn" onclick="window.location.href='/dfs/'">Thuật toán DFS</button>
+        <button class="algo-btn" onclick="window.location.href='/ford_fulkerson/'">Thuật toán Ford Fulkerson</button>
+        <button class="algo-btn" onclick="window.location.href='/kruskal/'">Thuật toán Kruskal</button>
+        <button class="algo-btn" onclick="window.location.href='/prim/'">Thuật toán Prim</button>
+    </div>
+
+    <div class="section-title">Các thuật toán tìm đường đi ngắn nhất</div>
+
+    <div class="algos-box">
+        <button class="algo-btn" onclick="window.location.href='/dijkstra/'">Thuật toán Dijkstra</button>
+        <button class="algo-btn" onclick="window.location.href='/bellman_ford/'">Thuật toán Bellman–Ford</button>
+        <button class="algo-btn" onclick="window.location.href='/brute_force/'">Thuật toán Brute_Force</button>
+    </div>
+
+</div>
+
+</body>
+</html>

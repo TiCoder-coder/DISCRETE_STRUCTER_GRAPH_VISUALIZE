@@ -1,0 +1,589 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>GRAPH VISUALIZE FORD-FULKERSON</title>
+<style>
+body {
+    background-image: url("{% static 'graphs/images/purple_wave.png' %}"); 
+    background-position: center; background-attachment: fixed; background-size: cover;
+    font-family: 'Inter', sans-serif; color: #ffffff;
+    margin: 0; padding: 0; overflow-x: hidden; background-color: #0b0c2a;
+}
+
+.container { width: 85%; margin: auto; padding-top: 20px; padding-bottom: 50px; }
+
+h1 {
+    font-size: 38px; text-align: center; margin: 20px 0 30px 0;
+    background: linear-gradient(90deg, #1f2b7a, #3f51b5, #00e5ff);
+    padding: 15px 60px; border-radius: 50px; display: inline-block;
+    box-shadow: 0 0 25px rgba(0,229,255,0.4);
+    text-transform: uppercase; letter-spacing: 2px;
+    position: relative; left: 50%; transform: translateX(-50%); white-space: nowrap;
+}
+
+.tab-buttons { text-align: center; margin-bottom: 25px; }
+.tab-btn {
+    padding: 12px 24px; margin: 0 10px; border: none; border-radius: 8px;
+    font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.3s;
+    background: rgba(255,255,255,0.15); color: #fff; backdrop-filter: blur(4px);
+}
+.tab-btn.active {
+    background: linear-gradient(135deg, #00f58a, #41ffd1);
+    color: #000; transform: scale(1.05); box-shadow: 0 0 15px rgba(0, 245, 138, 0.5);
+}
+
+.glass-box {
+    background: rgba(255,255,255,0.06); padding: 30px; border-radius: 16px;
+    backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5); margin-bottom: 30px;
+}
+
+.section-label { color: #41ffd1; font-weight: bold; margin-top: 20px; display: block; font-size: 14px; text-transform: uppercase; }
+input, select {
+    width: 100%; padding: 12px; font-size: 16px; margin-top: 5px;
+    background: rgba(0,0,0,0.3); border: 1px solid rgba(65, 255, 209, 0.3);
+    border-radius: 8px; color: #fff; outline: none; box-sizing: border-box;
+}
+input:focus { border-color: #41ffd1; box-shadow: 0 0 8px rgba(65, 255, 209, 0.5); }
+
+.action-btn {
+    padding: 12px 24px; font-size: 16px; font-weight: 700;
+    background: linear-gradient(135deg, #00f58a, #41ffd1);
+    color: #000; border: none; border-radius: 8px; cursor: pointer;
+    transition: 0.3s; margin-top: 15px; margin-right: 10px;
+}
+.action-btn:hover { transform: translateY(-2px); box-shadow: 0 0 20px rgba(0, 245, 138, 0.6); }
+
+.control-bar { margin-top: 15px; display: none; align-items: center; gap: 10px;}
+.ctrl-btn {
+    padding: 8px 16px; border: 1px solid #41ffd1; background: rgba(0,0,0,0.3);
+    color: #41ffd1; border-radius: 6px; cursor: pointer; transition: 0.2s;
+}
+.ctrl-btn:hover { background: #41ffd1; color: #000; }
+
+.viz-container { display: flex; gap: 25px; height: 650px; position: relative; }
+
+.graph-wrapper {
+    flex: 3; background: rgba(0,0,0,0.4); border-radius: 16px;
+    border: 1px solid rgba(65, 255, 209, 0.2); overflow: hidden; position: relative;
+}
+
+.max-flow-box {
+    position: absolute; top: 20px; right: 20px; z-index: 10;
+    background: rgba(0,0,0,0.6); border: 2px solid #facc15;
+    padding: 10px 25px; border-radius: 12px;
+    text-align: right; backdrop-filter: blur(5px);
+    box-shadow: 0 0 15px rgba(250, 204, 21, 0.2);
+}
+.max-flow-label { color: #ddd; font-size: 12px; text-transform: uppercase; display: block; margin-bottom: 5px; }
+.max-flow-value { color: #facc15; font-size: 36px; font-weight: 800; text-shadow: 0 0 10px rgba(250, 204, 21, 0.8); }
+
+.view-mode-toggle {
+    position: absolute; top: 20px; left: 20px; z-index: 10;
+    background: rgba(0,0,0,0.6); padding: 8px 15px; border-radius: 30px;
+    border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 10px;
+}
+.switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #555; transition: .4s; border-radius: 34px;
+}
+.slider:before {
+    position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px;
+    background-color: white; transition: .4s; border-radius: 50%;
+}
+input:checked + .slider { background-color: #41ffd1; }
+input:checked + .slider:before { transform: translateX(20px); }
+
+.info-wrapper {
+    flex: 1; background: rgba(0,0,0,0.5); border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.1); padding: 15px;
+    display: flex; flex-direction: column;
+}
+.info-title { font-weight: bold; color: #41ffd1; border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 10px; }
+#infoContent { flex: 1; overflow-y: auto; font-family: 'Consolas', monospace; font-size: 13px; color: #ccc; }
+.step-item { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
+.step-item:hover { background: rgba(255,255,255,0.1); }
+.step-item.active { background: rgba(65, 255, 209, 0.15); border-left: 3px solid #41ffd1; color: #fff; }
+
+#graphStats { max-height: 50%; overflow-y: auto; margin-bottom: 10px; padding-right: 5px;}
+#graphStats::-webkit-scrollbar { width: 5px; }
+#graphStats::-webkit-scrollbar-thumb { background: #41ffd1; border-radius: 5px; }
+
+.stat-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px; color: #eee; }
+.stat-table th, .stat-table td { border: 1px solid #444; padding: 6px; text-align: center; }
+.stat-table th { background: rgba(65, 255, 209, 0.2); color: #41ffd1; }
+.stat-section-title { color: #facc15; font-size: 13px; font-weight: bold; margin: 10px 0 5px 0; text-transform: uppercase; }
+
+details { background: rgba(255,255,255,0.05); margin-bottom: 5px; border-radius: 5px; overflow: hidden; }
+details summary { padding: 8px; cursor: pointer; font-weight: bold; color: #41ffd1; outline: none; }
+details summary:hover { background: rgba(255,255,255,0.1); }
+details[open] summary { border-bottom: 1px solid #444; }
+.details-content { padding: 10px; }
+
+.home-btn { position: absolute; top: 20px; left: 30px; color: #41ffd1; text-decoration: none; border: 1px solid #41ffd1; padding: 5px 15px; border-radius: 5px; background: rgba(0,0,0,0.5); }
+#introPanel { display: none; }
+#pdfTextBox { background: rgba(0,0,0,0.4); border: 1px solid #41ffd1; border-radius: 12px; padding: 40px; color: #fff; height: 70vh; overflow-y: auto; font-size: 18px; line-height: 1.6; }
+#pdfTextBox h3 { color: #41ffd1; border-bottom: 2px solid #41ffd1; padding-bottom: 10px; margin-top: 30px; }
+
+.neon-text-green { color: #41ffd1; font-weight: 700; text-transform: uppercase; text-decoration: underline; margin-bottom: 10px; display: block; text-shadow: 0 0 5px rgba(65, 255, 209, 0.6); }
+.instruction-text p { margin: 5px 0; font-size: 15px; line-height: 1.6; color: #e0e0e0; }
+.instruction-text b { color: #fff; }
+
+</style>
+</head>
+
+<body>
+<a href="/" class="home-btn">⬅ Trang Chủ</a>
+
+<div class="container">
+    <h1>Ford-Fulkerson Max Flow</h1>
+
+    <div class="tab-buttons">
+        <button id="visBtn" class="tab-btn active" onclick="switchTab('vis')">Trực quan hoá</button>
+        <button id="introBtn" class="tab-btn" onclick="switchTab('intro')">Giới thiệu thuật toán</button>
+    </div>
+
+    <div id="visPanel">
+        <div class="glass-box">
+            <span class="neon-text-green">NGUYÊN LÝ FORD-FULKERSON:</span>
+            <div class="instruction-text">
+                <p><b>1. Khởi tạo:</b> Flow = 0 trên tất cả các cạnh.</p>
+                <p><b>2. Tìm đường tăng luồng:</b> Tìm đường từ Nguồn -> Đích trên đồ thị dư (BFS).</p>
+                <p><b>3. Tăng luồng:</b> Tìm nút cổ chai (bottleneck) và cập nhật lại flow.</p>
+                <p><b>4. Lặp lại:</b> Cho đến khi không còn đường đi.</p>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2); margin: 15px 0;">
+
+            <div style="display: flex; gap: 20px;">
+                <div style="flex: 2;">
+                    <label class="section-label">NHẬP CÁC ĐỈNH CHO ĐỒ THỊ (VD: S, A, B, T)</label>
+                    <input id="nodes" value="S, A, B, C, D, T" oninput="updateSelectors()">
+                </div>
+                <div style="flex: 4;">
+                    <label class="section-label">NHẬP CÁC CẠNH VÀ SỨC CHỨA (VD: S-A-10, A-B-5)</label>
+                    <input id="edges" value="S-A-10, S-B-10, A-C-4, A-D-8, B-D-9, D-C-6, C-T-10, D-T-10">
+                </div>
+            </div>
+            <div style="display: flex; gap: 20px; margin-top: 10px;">
+                <div style="flex: 1;">
+                    <label class="section-label">Nguồn (Source)</label>
+                    <select id="sourceNode"></select>
+                </div>
+                <div style="flex: 1;">
+                    <label class="section-label">Đích (Sink)</label>
+                    <select id="sinkNode"></select>
+                </div>
+                <div style="flex: 2; display: flex; align-items: flex-end;">
+                    <button class="action-btn" onclick="runAlgorithm()" style="width: 100%">CHẠY TÌM LUỒNG CỰC ĐẠI</button>
+                </div>
+            </div>
+
+            <div id="controlBar" class="control-bar">
+                <button class="ctrl-btn" onclick="prevStep()">❮ Lùi Bước</button>
+                <button class="ctrl-btn" id="btnPlay" onclick="togglePlay()">▶ Tự động chạy</button>
+                <button class="ctrl-btn" onclick="nextStep()">Tiếp Bước ❯</button>
+                <span id="stepDisplay" style="color: #41ffd1; font-weight: bold; margin-left: 10px;"></span>
+            </div>
+        </div>
+
+        <div class="viz-container">
+            <div class="graph-wrapper">
+                
+                <div class="max-flow-box">
+                    <span class="max-flow-label">Tổng Luồng Cực Đại</span>
+                    <span id="totalFlowValue" class="max-flow-value">0</span>
+                </div>
+
+                <div class="view-mode-toggle">
+                    <span style="font-size: 13px; color: #ddd;">Chế độ: Đồ thị Dư (Residual)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="residualToggle" onchange="updateVisuals()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <svg id="graphArea" width="100%" height="100%"></svg>
+            </div>
+            
+            <div class="info-wrapper">
+                <div class="info-title">THÔNG SỐ ĐỒ THỊ</div>
+                <div id="graphStats">
+                    <p style="color:#aaa; font-style:italic;">Chạy thuật toán để xem chi tiết...</p>
+                </div>
+
+                <div class="info-title">NHẬT KÝ CHẠY</div>
+                <div id="infoContent">Sẵn sàng...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="introPanel">
+        <div class="glass-box">
+            <div id="pdfTextBox">Đang tải lý thuyết...</div>
+        </div>
+    </div>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+let gResult = null;
+let currentStepIdx = 0;
+let gEdges = [];
+let isPlaying = false;
+let autoPlayInterval = null;
+let simulation = null;
+let gNodes = [];
+
+function switchTab(tab) {
+    if (tab === 'vis') {
+        document.getElementById('visPanel').style.display = 'block';
+        document.getElementById('introPanel').style.display = 'none';
+        document.getElementById('visBtn').classList.add('active');
+        document.getElementById('introBtn').classList.remove('active');
+    } else {
+        document.getElementById('visPanel').style.display = 'none';
+        document.getElementById('introPanel').style.display = 'block';
+        document.getElementById('visBtn').classList.remove('active');
+        document.getElementById('introBtn').classList.add('active');
+        loadPdf();
+    }
+}
+
+function loadPdf() {
+    fetch("/api/ford_fulkerson_pdf/")
+        .then(r => r.json())
+        .then(data => document.getElementById("pdfTextBox").innerHTML = data.html)
+        .catch(e => document.getElementById("pdfTextBox").innerHTML = "Lỗi tải PDF.");
+}
+
+function updateSelectors() {
+    const raw = document.getElementById("nodes").value;
+    const list = raw.split(",").map(x => x.trim()).filter(x => x !== "");
+    const src = document.getElementById("sourceNode");
+    const sink = document.getElementById("sinkNode");
+    const oldSrc = src.value, oldSink = sink.value;
+    src.innerHTML = ""; sink.innerHTML = "";
+    list.forEach(n => {
+        src.innerHTML += `<option value="${n}">${n}</option>`;
+        sink.innerHTML += `<option value="${n}">${n}</option>`;
+    });
+    if(list.length > 0) {
+        src.value = list.includes(oldSrc) ? oldSrc : list[0];
+        sink.value = list.includes(oldSink) ? oldSink : list[list.length - 1];
+    }
+}
+updateSelectors();
+
+function renderGraphDetails(nodes, edges) {
+    const statsBox = document.getElementById("graphStats");
+    
+    let inDegree = {};
+    let outDegree = {};
+    let adjList = {};
+    
+    nodes.forEach(n => {
+        inDegree[n] = 0;
+        outDegree[n] = 0;
+        adjList[n] = [];
+    });
+
+    edges.forEach(e => {
+        if(outDegree[e.u] !== undefined) outDegree[e.u]++;
+        if(inDegree[e.v] !== undefined) inDegree[e.v]++;
+        
+        if(adjList[e.u]) {
+            adjList[e.u].push(`${e.v}(${e.capacity})`);
+        }
+    });
+
+    let matrixHtml = `<table class="stat-table"><thead><tr><th></th>`;
+    nodes.forEach(n => matrixHtml += `<th>${n}</th>`);
+    matrixHtml += `</tr></thead><tbody>`;
+    
+    nodes.forEach(u => {
+        matrixHtml += `<tr><th>${u}</th>`;
+        nodes.forEach(v => {
+            const edge = edges.find(e => e.u === u && e.v === v);
+            const val = edge ? edge.capacity : 0;
+            const style = val > 0 ? 'color: #facc15; font-weight:bold;' : 'color: #555;';
+            matrixHtml += `<td style="${style}">${val}</td>`;
+        });
+        matrixHtml += `</tr>`;
+    });
+    matrixHtml += `</tbody></table>`;
+
+    let adjHtml = `<ul style="margin: 0; padding-left: 20px; font-size: 13px;">`;
+    nodes.forEach(n => {
+        const listStr = adjList[n].length > 0 ? adjList[n].join(", ") : "<span style='color:#555'>Không có</span>";
+        adjHtml += `<li style="margin-bottom:4px;"><b>${n}</b>: ${listStr}</li>`;
+    });
+    adjHtml += `</ul>`;
+
+    let degreeHtml = `<table class="stat-table">
+        <thead><tr><th>Đỉnh</th><th>Bậc Ra</th><th>Bậc Vào</th></tr></thead>
+        <tbody>`;
+    nodes.forEach(n => {
+        degreeHtml += `<tr>
+            <td><b>${n}</b></td>
+            <td style="color: #4ade80">${outDegree[n]}</td>
+            <td style="color: #f472b6">${inDegree[n]}</td>
+        </tr>`;
+    });
+    degreeHtml += `</tbody></table>`;
+
+    statsBox.innerHTML = `
+        <details open>
+            <summary>1. Danh sách Đỉnh & Bậc</summary>
+            <div class="details-content">${degreeHtml}</div>
+        </details>
+        
+        <details>
+            <summary>2. Ma trận kề (Trọng số)</summary>
+            <div class="details-content" style="overflow-x:auto;">${matrixHtml}</div>
+        </details>
+
+        <details>
+            <summary>3. Danh sách kề</summary>
+            <div class="details-content">${adjHtml}</div>
+        </details>
+    `;
+}
+
+function runAlgorithm() {
+    const nodes = document.getElementById("nodes").value.split(",").map(n => n.trim());
+    const edges = document.getElementById("edges").value;
+    const source = document.getElementById("sourceNode").value;
+    const sink = document.getElementById("sinkNode").value;
+
+    if (source === sink) return alert("Nguồn và Đích không được trùng nhau!");
+
+    stopAutoPlay();
+    document.getElementById("infoContent").innerHTML = "Đang xử lý...";
+    document.getElementById("totalFlowValue").innerText = "0";
+
+    fetch("/api/graph/ford-fulkerson/", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nodes, edges, source, sink })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) return alert(data.error);
+        gResult = data.result;
+        gEdges = data.edges;
+        gNodes = data.nodes;
+        
+        renderGraphDetails(gNodes, gEdges);
+
+        initGraph(gNodes, gEdges);
+        renderLogs(gResult.steps);
+        
+        document.getElementById("controlBar").style.display = "flex";
+        currentStepIdx = 0;
+        updateVisuals();
+    })
+    .catch(e => alert("Lỗi API: " + e));
+}
+
+function initGraph(nodes, edges) {
+    const svg = d3.select("#graphArea");
+    svg.selectAll("*").remove();
+    const width = document.querySelector(".graph-wrapper").clientWidth;
+    const height = 650;
+
+    const defs = svg.append("defs");
+    
+    defs.append("marker").attr("id", "arrow").attr("viewBox", "0 0 10 10")
+        .attr("refX", 30).attr("refY", 5).attr("markerWidth", 5).attr("markerHeight", 5)
+        .attr("orient", "auto").append("path").attr("d", "M 0 0 L 10 5 L 0 10 z").attr("fill", "#666");
+
+    defs.append("marker").attr("id", "arrow-highlight").attr("viewBox", "0 0 10 10")
+        .attr("refX", 18).attr("refY", 5).attr("markerWidth", 6).attr("markerHeight", 6)
+        .attr("orient", "auto").append("path").attr("d", "M 0 0 L 10 5 L 0 10 z").attr("fill", "#facc15");
+
+    const filter = defs.append("filter").attr("id", "glow");
+    filter.append("feGaussianBlur").attr("stdDeviation", "3").attr("result", "coloredBlur");
+    const feMerge = filter.append("feMerge");
+    feMerge.append("feMergeNode").attr("in", "coloredBlur");
+    feMerge.append("feMergeNode").attr("in", "SourceGraphic");
+
+    const d3Nodes = nodes.map(n => ({ id: n }));
+    const d3Edges = edges.map(e => ({ 
+        source: e.u, target: e.v, capacity: e.capacity, 
+        id: `${e.u}-${e.v}` 
+    }));
+
+    simulation = d3.forceSimulation(d3Nodes)
+        .force("link", d3.forceLink(d3Edges).id(d => d.id).distance(180))
+        .force("charge", d3.forceManyBody().strength(-800))
+        .force("center", d3.forceCenter(width / 2, height / 2));
+
+    const linkGroup = svg.append("g").attr("class", "links");
+    const link = linkGroup.selectAll("line").data(d3Edges).enter().append("line")
+        .attr("id", d => `edge-${d.source.id || d.source}-${d.target.id || d.target}`)
+        .attr("stroke", "#444").attr("stroke-width", 2)
+        .attr("marker-end", "url(#arrow)");
+
+    const labelGroup = svg.append("g").attr("class", "labels");
+    const linkLabel = labelGroup.selectAll("text").data(d3Edges).enter().append("text")
+        .attr("id", d => `lbl-${d.source.id || d.source}-${d.target.id || d.target}`)
+        .text(d => `0 / ${d.capacity}`).attr("font-size", "14px")
+        .attr("fill", "#888").attr("text-anchor", "middle").attr("dy", -8)
+        .style("background", "#000");
+
+    const nodeGroup = svg.append("g").attr("class", "nodes");
+    const node = nodeGroup.selectAll("circle").data(d3Nodes).enter().append("circle")
+        .attr("id", d => `node-${d.id}`).attr("r", 22)
+        .attr("fill", "#0f172a").attr("stroke", "#41ffd1").attr("stroke-width", 2)
+        .call(d3.drag()
+            .on("start", (e, d) => { if(!e.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+            .on("drag", (e, d) => { d.fx = e.x; d.fy = e.y; })
+            .on("end", (e, d) => { if(!e.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }));
+
+    const textGroup = svg.append("g");
+    const text = textGroup.selectAll("text").data(d3Nodes).enter().append("text")
+        .text(d => d.id).attr("dy", 5).attr("text-anchor", "middle")
+        .attr("fill", "white").attr("font-weight", "bold").style("pointer-events", "none");
+
+    simulation.on("tick", () => {
+        link.attr("x1", d => d.source.x).attr("y1", d => d.source.y)
+            .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+        
+        linkLabel.attr("x", d => (d.source.x + d.target.x) / 2).attr("y", d => (d.source.y + d.target.y) / 2);
+        node.attr("cx", d => d.x).attr("cy", d => d.y);
+        text.attr("x", d => d.x).attr("y", d => d.y);
+    });
+}
+
+function updateVisuals() {
+    if (!gResult) return;
+    const steps = gResult.steps;
+    
+    const isResidualMode = document.getElementById("residualToggle").checked;
+    
+    let currentFlows = {};
+    gEdges.forEach(e => { currentFlows[`${e.u}-${e.v}`] = 0; });
+    
+    let highlightPath = [];
+    let flowAddedInThisStep = 0;
+    let totalMaxFlow = 0;
+
+    for (let i = 0; i <= currentStepIdx; i++) {
+        const s = steps[i];
+        if (s.action === "augment") {
+            if (i === currentStepIdx) {
+                highlightPath = s.path;
+                flowAddedInThisStep = s.flow_added;
+            }
+            totalMaxFlow += s.flow_added;
+            
+            for (let k = 0; k < s.path.length - 1; k++) {
+                let u = s.path[k], v = s.path[k+1];
+                let key = `${u}-${v}`, revKey = `${v}-${u}`;
+                if (currentFlows.hasOwnProperty(key)) currentFlows[key] += s.flow_added;
+                else if (currentFlows.hasOwnProperty(revKey)) currentFlows[revKey] -= s.flow_added;
+            }
+        }
+    }
+
+    document.getElementById("totalFlowValue").innerText = totalMaxFlow;
+
+    d3.selectAll("circle").attr("fill", "#0f172a").attr("stroke", "#41ffd1");
+    d3.selectAll("line")
+        .attr("stroke", "#444").attr("stroke-width", 2)
+        .attr("marker-end", "url(#arrow)").style("filter", "none");
+    d3.selectAll(".labels text").attr("fill", "#888").style("font-weight", "normal").style("font-size", "14px");
+
+    for (const [key, flow] of Object.entries(currentFlows)) {
+        const edgeObj = gEdges.find(e => `${e.u}-${e.v}` === key);
+        if(!edgeObj) continue;
+        const cap = edgeObj.capacity;
+        const residual = cap - flow;
+
+        const lbl = d3.select(`#lbl-${key}`);
+        
+        if (isResidualMode) {
+            lbl.text(residual).attr("fill", "#aaa");
+            if(residual === 0) lbl.attr("fill", "#333");
+        } else {
+            lbl.text(`${flow} / ${cap}`);
+            if(flow > 0) lbl.attr("fill", "#fff");
+            if(flow === cap) lbl.attr("fill", "#ef4444");
+        }
+    }
+
+    if (highlightPath.length > 0) {
+        highlightPath.forEach(nid => {
+            d3.select(`#node-${nid}`).attr("fill", "#1f2b7a").attr("stroke", "#facc15");
+        });
+
+        for (let k = 0; k < highlightPath.length - 1; k++) {
+            let u = highlightPath[k], v = highlightPath[k+1];
+            
+            let edgeSel = d3.select(`#edge-${u}-${v}`);
+            if(edgeSel.empty()) edgeSel = d3.select(`#edge-${v}-${u}`);
+            
+            edgeSel
+                .attr("stroke", "#facc15")
+                .attr("stroke-width", 4)
+                .attr("marker-end", "url(#arrow-highlight)")
+                .style("filter", "url(#glow)"); 
+
+            let lblSel = d3.select(`#lbl-${u}-${v}`);
+            if(lblSel.empty()) lblSel = d3.select(`#lbl-${v}-${u}`);
+            
+            lblSel.attr("fill", "#facc15").style("font-weight", "bold");
+            
+            if(isResidualMode) {
+                 lblSel.text(`${flowAddedInThisStep} (Bottleneck)`);
+            }
+        }
+    }
+
+    document.getElementById("stepDisplay").innerText = `Bước ${currentStepIdx} / ${steps.length - 1}`;
+    document.querySelectorAll(".step-item").forEach((el, idx) => {
+        el.className = idx === currentStepIdx ? "step-item active" : "step-item";
+        if(idx === currentStepIdx) el.scrollIntoView({behavior: "smooth", block: "center"});
+    });
+
+    if (currentStepIdx >= steps.length - 1) stopAutoPlay();
+}
+
+function renderLogs(steps) {
+    const box = document.getElementById("infoContent");
+    box.innerHTML = "";
+    steps.forEach((s, i) => {
+        const div = document.createElement("div");
+        div.className = "step-item";
+        let icon = s.action === 'augment' ? '⚡' : '🔍';
+        div.innerHTML = `<span style="color: #666; font-size: 11px;">#${i}</span> ${icon} ${s.message}`;
+        div.onclick = () => { currentStepIdx = i; updateVisuals(); };
+        box.appendChild(div);
+    });
+}
+function togglePlay() { isPlaying ? stopAutoPlay() : startAutoPlay(); }
+function startAutoPlay() {
+    if(!gResult) return;
+    if(currentStepIdx >= gResult.steps.length - 1) currentStepIdx = 0;
+    isPlaying = true;
+    document.getElementById("btnPlay").innerText = "⏸ Dừng";
+    document.getElementById("btnPlay").style.borderColor = "#facc15";
+    autoPlayInterval = setInterval(() => {
+        if(currentStepIdx < gResult.steps.length - 1) { currentStepIdx++; updateVisuals(); }
+    }, 1500);
+}
+function stopAutoPlay() {
+    isPlaying = false; clearInterval(autoPlayInterval);
+    document.getElementById("btnPlay").innerText = "▶ Tự động";
+    document.getElementById("btnPlay").style.borderColor = "#41ffd1";
+}
+function nextStep() { if (gResult && currentStepIdx < gResult.steps.length - 1) { currentStepIdx++; updateVisuals(); } }
+function prevStep() { if (gResult && currentStepIdx > 0) { currentStepIdx--; updateVisuals(); } }
+
+</script>
+</body>
+</html>

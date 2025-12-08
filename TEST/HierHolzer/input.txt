@@ -1,0 +1,210 @@
+1. Nhóm TRUE – Có chu trình Euler (Hierholzer tìm được)
+1.1. 4 đỉnh – TRUE
+
+Tên case: HIER_U4_TRUE
+
+nodes:
+A,B,C,D
+
+edges:
+A-B,B-C,C-D,D-A
+
+Đồ thị: hình vuông A–B–C–D–A.
+
+Lý do có chu trình Euler:
+
+Mọi đỉnh đều bậc 2 (chẵn).
+
+Đồ thị liên thông.
+
+Một chu trình Euler hợp lệ: A → B → C → D → A
+
+1.2. 6 đỉnh – TRUE
+
+Tên case: HIER_U6_TRUE
+
+nodes:
+A,B,C,D,E,F
+
+edges:
+A-B,B-C,C-D,D-E,E-F,F-A
+
+Đồ thị: chu trình 6 đỉnh (lục giác).
+
+Lý do:
+
+Deg(A…F) = 2 (chẵn).
+
+Đồ thị liên thông.
+
+Chu trình Euler ví dụ: A → B → C → D → E → F → A
+
+1.3. 8 đỉnh – TRUE (đồ thị phức tạp hơn, nhiều chu trình)
+
+Tên case: HIER_U8_TRUE
+
+nodes:
+A,B,C,D,E,F,G,H
+
+edges:
+A-B,B-C,C-D,D-E,E-F,F-G,G-H,H-A,
+A-C,C-E,E-G,G-A
+
+Giải thích cấu trúc:
+
+Một vòng 8 đỉnh: A–B–C–D–E–F–G–H–A.
+
+Thêm các cạnh chéo: A–C, C–E, E–G, G–A tạo thêm các chu trình nhỏ.
+
+Bậc đỉnh:
+
+A: B, H, C, G → bậc 4
+
+B: A, C → 2
+
+C: B, D, A, E → 4
+
+D: C, E → 2
+
+E: D, F, C, G → 4
+
+F: E, G → 2
+
+G: F, H, E, A → 4
+
+H: G, A → 2
+
+Lý do:
+
+Tất cả bậc đều chẵn (2 hoặc 4).
+
+Đồ thị liên thông.
+
+Hierholzer có thể trả về một chu trình Euler như:
+A → B → C → D → E → F → G → H → A → C → E → G → A
+(hoặc hoán vị khác – chỉ cần là chu trình dùng hết cạnh).
+
+1.4. 10 đỉnh – TRUE
+
+Tên case: HIER_U10_TRUE
+
+nodes:
+A,B,C,D,E,F,G,H,I,J
+
+edges:
+A-B,B-C,C-D,D-E,E-F,F-G,G-H,H-I,I-J,J-A
+
+Đồ thị: vòng 10 đỉnh (A…J).
+
+Lý do:
+
+Mỗi đỉnh bậc 2 (chẵn).
+
+Đồ thị liên thông.
+
+Chu trình Euler ví dụ:
+A → B → C → D → E → F → G → H → I → J → A
+
+2. Nhóm FALSE – Không có chu trình Euler (Hierholzer phải báo lỗi)
+
+Ở đây mình cố tình thiết kế để:
+
+Hoặc là chỉ có đường đi Euler (2 đỉnh bậc lẻ)
+
+Hoặc không Euler luôn.
+Hierholzer (phiên bản chu trình) phải reject và báo lý do.
+
+Khi bạn gửi lên backend, nên để hierholzer.py kiểm tra bằng is_eulerian (hoặc tự check) rồi trả về has_euler_circuit = False, kèm reason.
+
+2.1. 4 đỉnh – FALSE (chỉ có đường đi Euler, không có chu trình)
+
+Tên case: HIER_U4_FALSE
+
+nodes:
+A,B,C,D
+
+edges:
+A-B,B-C,C-D
+
+Bậc đỉnh:
+
+A: 1, B: 2, C: 2, D: 1 → có 2 đỉnh bậc lẻ (A, D).
+
+Lý do không có chu trình Euler:
+
+Chỉ có đường đi Euler (từ A tới D), không có chu trình vì tồn tại đỉnh bậc lẻ.
+
+Lý do hiển thị gợi ý:
+
+“Đồ thị có 2 đỉnh bậc lẻ (A, D) nên chỉ có đường đi Euler, không tồn tại chu trình Euler.”
+
+2.2. 6 đỉnh – FALSE (cũng chỉ có đường đi Euler)
+
+Tên case: HIER_U6_FALSE
+
+nodes:
+A,B,C,D,E,F
+
+edges:
+A-B,B-C,C-D,D-E,E-F
+
+(chính là vòng 6 đỉnh nhưng bỏ cạnh F-A)
+
+Bậc đỉnh:
+
+A: 1, F: 1, các đỉnh còn lại bậc 2.
+
+Lý do:
+
+2 đỉnh bậc lẻ (A, F) → chỉ có đường đi Euler A…F, không có chu trình.
+
+2.3. 8 đỉnh – FALSE (đường đi Euler, không có chu trình)
+
+Dùng lại đồ thị 8 đỉnh ở mục TRUE, nhưng bỏ 1 cạnh chéo để làm xuất hiện 2 đỉnh bậc lẻ.
+
+Tên case: HIER_U8_FALSE
+
+nodes:
+A,B,C,D,E,F,G,H
+
+edges:
+A-B,B-C,C-D,D-E,E-F,F-G,G-H,H-A,
+A-C,C-E,E-G
+
+(so với bản TRUE, đã bỏ cạnh G-A)
+
+Bậc đỉnh:
+
+A: B, H, C → bậc 3 (lẻ)
+
+G: F, H, E → bậc 3 (lẻ)
+
+Các đỉnh còn lại bậc chẵn.
+
+Lý do:
+
+Có đúng 2 đỉnh bậc lẻ (A, G) → chỉ có đường đi Euler, không có chu trình Euler.
+
+2.4. 10 đỉnh – FALSE (chỉ có đường đi Euler)
+
+Tên case: HIER_U10_FALSE
+
+nodes:
+A,B,C,D,E,F,G,H,I,J
+
+edges:
+A-B,B-C,C-D,D-E,E-F,F-G,G-H,H-I,I-J
+
+(vòng 10 đỉnh nhưng bỏ cạnh J-A)
+
+Bậc đỉnh:
+
+A: 1 (chỉ nối B)
+
+J: 1 (chỉ nối I)
+
+Các đỉnh còn lại bậc 2.
+
+Lý do:
+
+2 đỉnh bậc lẻ (A, J) → đồ thị chỉ có đường đi Euler A…J, không có chu trình.

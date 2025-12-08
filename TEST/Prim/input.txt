@@ -1,0 +1,17 @@
+Thuật Toán Prim:
+
+Bắt Đầu: A
+
+Trường hợp tìm được cây khung nhỏ nhất
+
+Đỉnh: A, B, C, D, E, F
+
+Các cạnh và trọng số : A-B-4, A-C-8, B-C-9, B-D-8, C-D-2,C-E-7, D-E-6
+
+E-F-5, D-F-4, B-F-11
+
+Trường hợp không tìm được
+
+Đỉnh : A,B,C,D,E,F
+
+Cạnh và Trọng số : A-B-4, B-C-2 , D-E-3, E-F-5 

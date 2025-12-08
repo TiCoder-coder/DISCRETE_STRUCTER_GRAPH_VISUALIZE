@@ -1,0 +1,769 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GRAPH VISUALIZE FLEURY ALGORITHMS</title>
+
+<style>
+#graphArea {
+    overflow: hidden !important;
+}
+
+
+.run-btn {
+    margin-top: 18px;
+    margin-bottom: 10px;
+    padding: 14px 28px !important;
+    font-size: 18px !important;
+    border-radius: 12px !important;
+    background: linear-gradient(135deg, #00f58a, #41ffd1);
+    color: #000;
+    font-weight: 600;
+    box-shadow: 0 0 12px rgba(0,255,180,0.6);
+    cursor: pointer;
+}
+
+.run-btn:hover {
+    transform: scale(1.10);
+    background: linear-gradient(135deg, #35ff9d, #7affde);
+    box-shadow: 0 0 18px rgba(0,255,200,0.9);
+}
+
+body {
+    background-image: url("{% static 'graphs/images/purple_wave.png' %}");
+    background-size: cover;
+    background-position: 80px;
+    background-attachment: fixed;
+    font-family: 'Inter', sans-serif;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+
+.container {
+    width: 85%;
+    margin: auto;
+    padding-top: 0px !important;
+}
+
+
+h1 {
+    font-size: 52px;
+    margin: 24px auto 32px;
+    padding: 14px 80px;
+    display: block;
+    width: fit-content;
+
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-weight: 800;
+
+    background: linear-gradient(120deg, #1f2b7a, #3f51b5, #00e5ff);
+    border-radius: 999px;
+    box-shadow: 0 0 22px rgba(0, 229, 255, 0.55);
+
+    color: #ffffff;
+    -webkit-text-fill-color: #faf7f7;
+    text-shadow: 0 0 10px rgba(0,0,0,0.45);
+}
+
+h1::after {
+    content: none;
+}
+
+
+
+
+.tab-buttons {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.tab-btn {
+    padding: 12px 26px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 10px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .25s;
+    background: rgba(255,255,255,0.2);
+    color: #ffffff;
+    backdrop-filter: blur(6px);
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, #00e28a, #3dffcb);
+    color: black;
+    transform: scale(1.06);
+}
+
+.tab-btn:hover {
+    transform: scale(1.06);
+}
+
+.glass-box {
+    background: rgba(255,255,255,0.08);
+    padding: 25px;
+    border-radius: 14px;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.45);
+    margin-bottom: 40px;
+}
+
+.neon-title {
+    font-size: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+
+    background: linear-gradient(90deg, #00fff0, #41ffd1, #ffe66d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    text-shadow: 0 0 10px rgba(0,255,200,0.8),
+                 0 0 18px rgba(0,200,255,0.7);
+
+    position: relative;
+
+    display: inline-block;
+}
+
+.neon-title::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+
+    width: 100%;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #00e28a, #41ffd1);
+    box-shadow: 0 0 10px rgba(0,255,200,0.8);
+}
+
+.fleury-step-item.active-step {
+    background: rgba(0, 255, 200, 0.10);
+    border-left: 3px solid #41ffd1;
+    padding-left: 6px;
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    font-size: 17px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(180,150,255,0.45);
+    border-radius: 12px;
+    color: #e8ebff;
+    outline: none;
+    transition: .25s;
+}
+
+input:focus {
+    border-color: #c9b2ff;
+    background: rgba(255,255,255,0.18);
+    box-shadow: 0 0 15px #cdb3ff;
+}
+
+button {
+    padding: 12px 24px;
+    font-size: 17px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #00d277, #21ffba);
+    color: #0c0c0c;
+    cursor: pointer;
+    font-weight: 600;
+    transition: .25s;
+}
+
+button:hover {
+    transform: scale(1.08);
+    background: linear-gradient(135deg, #0aff8a, #5affcc);
+}
+
+svg {
+    width: auto;
+    height: auto;
+    min-width: 100%;
+    min-height: 600px;
+
+    overflow: visible !important;
+
+    border-radius: 16px;
+    background: rgba(0,0,0,0.20);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+
+.node { transition: none !important; }
+.node:hover { filter: none !important; }
+
+.highlight-node {
+    fill: #f7d206 !important;
+    filter: drop-shadow(0 0 15px #eb0606);
+}
+
+.edge { stroke: #eaee0d; stroke-width: 4; }
+.highlight-edge { stroke: #ff4704 !important; stroke-width: 7 !important; }
+
+#pdfTextBox {
+    white-space: pre-line;
+    background: rgba(0,0,0,0.35);
+    padding: 25px;
+    border-radius: 14px;
+    color: #e8eaff;
+    backdrop-filter: blur(10px);
+    font-size: 17px;
+    line-height: 1.7;
+    margin-top: 25px;
+    box-shadow: inset 0 0 25px rgba(0,0,0,0.4);
+}
+.pdf-wrapper {
+    background: rgba(255,255,255,0.06);
+    border-radius: 18px;
+    padding: 35px;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 8px 35px rgba(0,0,0,0.45);
+    backdrop-filter: blur(14px);
+    margin-top: 25px;
+}
+
+.pdf-header {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 25px;
+    color: #dff3ff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pdf-header i {
+    font-size: 30px;
+    color: #79d7ff;
+    filter: drop-shadow(0 0 6px #79d7ff);
+}
+.home-btn { 
+    position: absolute; 
+    top: 20px; 
+    left: 30px; 
+    color: #41ffd1; 
+    text-decoration: none; 
+    border: 1px solid #41ffd1; 
+    padding: 5px 15px; 
+    border-radius: 5px; 
+    background: rgba(0,0,0,0.5); 
+}
+
+.graph-info-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-top: 6px;
+}
+
+.graph-info-table th,
+.graph-info-table td {
+    border: 1px solid rgba(255,255,255,0.18);
+    padding: 6px 8px;
+}
+
+.graph-info-table th {
+    background: linear-gradient(90deg, #00e5ff, #2af598);
+    color: #00131a;
+    font-weight: 700;
+    text-align: center;
+}
+
+.graph-info-table td {
+    background: rgba(0,0,0,0.18);
+}
+
+.graph-info-title {
+    font-weight: 700;
+    font-size: 17px;
+    margin-top: 10px;
+    margin-bottom: 6px;
+    color: #79d7ff;
+}
+
+#pdfTextBox {
+    white-space: pre-wrap;
+    font-size: 18px;
+    line-height: 1.85;
+    padding: 25px;
+    color: #ffffff;
+    background: rgba(0,0,0,0.28);
+    border-radius: 14px;
+    border-left: 4px solid #70d6ff;
+    box-shadow: inset 0 0 22px rgba(0,0,0,0.4);
+}
+#infoPanel {
+    font-size: 16px !important;
+    line-height: 1.55 !important;
+    color: #e9ecff !important;
+}
+
+#infoPanel h3 {
+    font-size: 18px !important;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+#infoPanel pre,
+#infoPanel p,
+#infoPanel div {
+    font-size: 16px !important;
+    font-family: inherit !important;
+    line-height: 1.55 !important;
+}
+
+
+</style>
+</head>
+
+<body>
+<a href="/" class="home-btn">⬅ Trang Chủ</a>
+<div class="container">
+
+    <h1>GRAPH VISUALIZE FLEURY ALGORITHMS</h1>
+
+    <div class="tab-buttons">
+        <button id="visualBtn" class="tab-btn active" onclick="showVisual()">Trực quan hoá</button>
+        <button id="introBtn" class="tab-btn" onclick="showIntro()">Giới thiệu thuật toán</button>
+    </div>
+
+
+    <div id="visualPanel">
+
+        <div class="glass-box" style="margin-top: 5px;">
+            <h3 class="neon-title">GIỚI THIỆU VỀ FLEURY:
+            </h3>
+            <h3>
+                <p><b></b>1. Chọn đỉnh bắt đầu</p>
+                    <p><b></b>- Nếu có 2 đỉnh bậc lẻ → phải bắt đầu từ một trong 2 đỉnh bậc lẻ → ra đường đi Euler.</p>
+                    <p><b></b>- Nếu tất cả bậc chẵn → chọn bất kỳ đỉnh nào → ra chu trình Euler.</p>
+                <p><b></b>2. Lặp lại cho đến khi hết cạnh:</p>
+                    <p><b></b>- Đang ở đỉnh u, xét các cạnh (u, v) còn lại.</p>
+                    <p><b></b>- Ưu tiên chọn cạnh không phải cầu (không làm tách đồ thị thành 2 phần tách rời nếu xóa nó).</p>
+                    <p><b></b>- Chỉ dùng cạnh là cầu khi không còn lựa chọn nào khác.</p>
+                    <p><b></b>- Đi qua cạnh (u, v), in/ghi lại cạnh đó, rồi xóa cạnh khỏi đồ thị.</p>
+                <p><b></b>3. Khi không còn cạnh để đi → dãy cạnh/đỉnh đã ghi lại chính là đường đi / chu trình Euler.</p>
+            </h3>
+            <h3 class="neon-title">CHỌN ĐỒ THỊ</h3>
+            <div style="margin: 20px 0; text-align:center;">
+                <button id="btn-undirected" class="tab-btn active">Đồ thị vô hướng</button>
+                <button id="btn-directed" class="tab-btn">Đồ thị có hướng</button>
+            </div>
+
+            <script>
+
+            document.getElementById("btn-undirected").onclick = function () {
+                window.setGraphType("undirected");
+                this.classList.add("active");
+                document.getElementById("btn-directed").classList.remove("active");
+            };
+
+
+            document.getElementById("btn-directed").onclick = function () {
+                window.setGraphType("directed");
+                this.classList.add("active");
+                document.getElementById("btn-undirected").classList.remove("active");
+            };
+
+            </script>
+
+
+            <p class="neon-title"><b>NHẬP CÁC ĐỈNH CHO ĐỒ THỊ:</b> (VD: A,B,C,D)</p>
+            <input id="nodes" placeholder="A,B,C,D">
+
+            <p class="neon-title"><b>NHẬP CÁC CẠNH NỐI CHO CỦA ĐỒ THỊ:</b> (VD: A-B, B-C, C-D)</p>
+            <input id="edges" placeholder="A-B,B-C,C-D">
+            <div style="margin-top: 20px; display:flex; gap:14px; flex-wrap:wrap;">
+                <button class="run-btn" onclick="selectMode('auto')">Chu trình Euler tự động</button>
+                <button class="run-btn" onclick="selectMode('path')">Đường đi Euler theo đỉnh</button>
+                <button class="run-btn" onclick="selectMode('circuit')">Chu trình Euler theo đỉnh</button>
+            </div>
+
+            <div id="startNodeDiv" style="display:none; margin-top: 18px;">
+                <p><b>Chọn đỉnh bắt đầu:</b></p>
+                <input id="startNode" placeholder="VD: A">
+                <button class="run-btn" onclick="runFleuryFinal()">Bắt đầu trực quan hoá</button>
+            </div>
+
+
+        </div>
+
+        <div class="glass-box" style="
+            display: flex;
+            gap: 25px;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 25px;
+        ">
+
+            <div style="
+                flex: 2.3;
+                height: 1200px;
+                padding: 0;
+                overflow-y: auto;
+                overflow-x: auto;
+                border-radius: 16px;
+                background: rgba(0,0,0,0.20);
+                border: 1px solid rgba(255,255,255,0.12);
+            ">
+                <div style="
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                ">
+                    <svg id="graphArea"
+                        style="
+                            width: 1800px;
+                            height: 1200px;
+                            background: rgba(0,0,0,0.20);
+                            border-radius: 16px;
+                            border: 1px solid rgba(255,255,255,0.12);
+                            overflow: visible !important;
+                        ">
+                    </svg>
+                </div>
+            </div>
+
+            <div id="infoPanel" style="
+                flex: 1;
+                padding: 22px;
+                height: 1100px;
+                overflow-y: auto;
+                border-radius: 14px;
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.15);
+                margin-top: 40px;
+            ">
+                <h3 style="margin-bottom: 10px;">THÔNG TIN ĐỒ THỊ</h3>
+                <div id="infoContent">Chưa có dữ liệu...</div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div id="introPanel" style="display:none;">
+
+        <div class="glass-box">
+
+            <div class="pdf-wrapper">
+
+                <div class="pdf-header">
+                    <i></i> Giới thiệu thuật toán Fleury
+                </div>
+
+                <div id="pdfTextBox">Đang tải nội dung PDF...</div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+    window.graphType = "undirected";   
+    window.setGraphType = (t) => window.graphType = t;
+    window.getGraphType = () => window.graphType;
+
+</script>
+
+<script src="/static/graphs/js/algorithms_d3/fleury/fleury.js?v=20250238"></script>
+
+<script>
+let selectedMode = null;
+
+function selectMode(mode) {
+    selectedMode = mode;
+    document.getElementById("startNodeDiv").style.display = "block";
+
+    if (mode === "auto") {
+        document.getElementById("startNodeDiv").style.display = "none";
+        runFleuryFinal();
+    }
+}
+function updateInfo(info) {
+    const box = document.getElementById("infoContent");
+    if (!box) return;
+
+    const nodes = info.nodes || Object.keys(info.degree || {});
+    const graphType = window.getGraphType && window.getGraphType() === "directed"
+        ? "Đồ thị có hướng"
+        : "Đồ thị vô hướng";
+
+    const t = info.euler_type || "";
+    const hasPath    = t === "path" || t === "both";
+    const hasCircuit = t === "circuit" || t === "both";
+    let reason = info.euler_reason || "";
+
+    const degObj = info.degree || {};
+    const oddVertices = Object.keys(degObj)
+        .filter(v => (degObj[v] % 2) === 1);
+    const oddCount = oddVertices.length;
+
+    if (!reason) {
+        if (info.connected === false || info.is_connected === false) {
+            reason = "Đồ thị không liên thông nên không tồn tại đường đi / chu trình Euler.";
+        }
+        else if (graphType === "Đồ thị vô hướng") {
+            if (oddCount === 0) {
+                reason = "Tất cả các đỉnh đều có bậc chẵn (0 đỉnh bậc lẻ), nên tồn tại chu trình Euler.";
+            } else if (oddCount === 2) {
+                reason = `Có đúng 2 đỉnh bậc lẻ (${oddVertices.join(", ")}), nên tồn tại đường đi Euler nhưng không tồn tại chu trình Euler.`;
+            } else {
+                reason = `Có ${oddCount} đỉnh bậc lẻ (${oddVertices.join(", ")}), nên không tồn tại đường đi / chu trình Euler.`;
+            }
+        }
+        else {
+            if (hasCircuit) {
+                reason = "Mỗi đỉnh đều có in-degree bằng out-degree và đồ thị liên thông theo cạnh có hướng, nên tồn tại chu trình Euler.";
+            } else if (hasPath) {
+                reason = "Có đúng hai đỉnh chênh lệch 1 giữa in-degree và out-degree, các đỉnh còn lại cân bằng, nên tồn tại đường đi Euler nhưng không tồn tại chu trình Euler.";
+            } else {
+                reason = "Các điều kiện về in-degree / out-degree không thoả mãn nên không tồn tại đường đi / chu trình Euler.";
+            }
+        }
+    }
+
+    const degreeRows = nodes.map(n => `
+        <tr>
+            <td>${n}</td>
+            <td style="text-align:center;">${info.degree?.[n] ?? 0}</td>
+        </tr>
+    `).join("");
+
+    const adjRows = nodes.map(n => {
+        const neighbors = (info.adj_list?.[n] || []).join(", ") || "∅";
+        return `
+            <tr>
+                <td>${n}</td>
+                <td>${neighbors}</td>
+            </tr>
+        `;
+    }).join("");
+
+    const headerRow = `
+        <tr>
+            <th></th>
+            ${nodes.map(n => `<th>${n}</th>`).join("")}
+        </tr>
+    `;
+
+    const matrixRows = (info.adj_matrix || []).map((row, i) => `
+        <tr>
+            <th>${nodes[i]}</th>
+            ${row.map(v => `<td style="text-align:center;">${v}</td>`).join("")}
+        </tr>
+    `).join("");
+
+    const hasPathStr = (info.fleury_path || []).length
+        ? info.fleury_path[0]
+        : "";
+
+    const stepsHtml = (info.fleury_steps || []).map(s => {
+        const edgeText = s.edge
+            ? `${s.edge[0]} – ${s.edge[1]}`
+            : "(bắt đầu)";
+        return `
+            <li>
+                Bước ${s.step}: đi cạnh <b>${edgeText}</b> đến đỉnh <b>${s.current}</b>
+            </li>
+        `;
+    }).join("");
+
+    box.innerHTML = `
+        <div style="font-size:15px; line-height:1.7;">
+            <p><b>Mode:</b> ${(info.mode || "auto").toString().toUpperCase()}</p>
+            <p><b>Loại đồ thị:</b> ${graphType}</p>
+            <p><b>Kết luận Euler:</b> ${info.euler_message || ""}</p>
+            <p>
+                Có đường đi Euler?
+                <b style="color:${hasPath ? "#00ff99" : "#ff6666"};">
+                    ${hasPath ? "Có" : "Không"}
+                </b>
+                &nbsp;|&nbsp;
+                Có chu trình Euler?
+                <b style="color:${hasCircuit ? "#00ff99" : "#ff6666"};">
+                    ${hasCircuit ? "Có" : "Không"}
+                </b>
+            </p>
+            <p>
+                <b>Số đỉnh:</b> ${info.num_nodes ?? nodes.length}
+                &nbsp;|&nbsp;
+                <b>Số cạnh:</b> ${info.num_edges ?? "?"}
+            </p>
+
+            <p style="margin-top:4px;">
+                <b>Lý do kết luận:</b>
+                <span style="color:#ffd86b;">
+                    ${reason}
+                </span>
+            </p>
+
+            
+
+            <hr style="margin:12px 0; border-color:rgba(255,255,255,0.3);" />
+
+            <div class="graph-info-section">
+                <div class="graph-info-title">1. Bậc từng đỉnh</div>
+                <table class="graph-info-table">
+                    <tr><th>Đỉnh</th><th>Bậc</th></tr>
+                    ${degreeRows}
+                </table>
+            </div>
+
+            <div class="graph-info-section">
+                <div class="graph-info-title">2. Danh sách kề</div>
+                <table class="graph-info-table">
+                    <tr><th>Đỉnh</th><th>Các đỉnh kề</th></tr>
+                    ${adjRows}
+                </table>
+            </div>
+
+            <div class="graph-info-section">
+                <div class="graph-info-title">3. Ma trận kề</div>
+                <div style="overflow-x:auto;">
+                    <table class="graph-info-table">
+                        ${headerRow}
+                        ${matrixRows}
+                    </table>
+                </div>
+            </div>
+
+            <div class="graph-info-section">
+                <div class="graph-info-title">4. Đường đi Euler (Fleury)</div>
+
+                <!-- dòng path sẽ cập nhật dần -->
+                <p id="fleuryPathText">
+                    ${hasPathStr
+                        ? `<b>Đang chạy...</b>`
+                        : "<i>Không có – đồ thị không Euler.</i>"
+                    }
+                </p>
+
+                <!-- list các bước, sẽ được append từng li trong animateFleury -->
+                <ol id="fleuryStepsList" style="margin-top:6px; padding-left:18px;"></ol>
+            </div>
+        </div>
+    `;
+}
+
+function runFleuryFinal() {
+    const nodes = document.getElementById("nodes").value.split(",");
+    const startNode = document.getElementById("startNode").value.trim();
+
+    if (selectedMode !== "auto" && !nodes.includes(startNode)) {
+        alert("Đỉnh bắt đầu không hợp lệ!");
+        return;
+    }
+
+    fetch("/api/graph/fleury/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            graphType: window.getGraphType(),
+
+            nodes: nodes,
+            edges: document.getElementById("edges").value.split(","),
+            startNode: startNode || null,
+            mode: selectedMode
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        const infoBox = document.getElementById("infoContent");
+
+        if (data.error) {
+            infoBox.innerHTML = `
+                <p style="color:#ff6b81; font-weight:600; font-size:18px;">
+                    ${data.error}
+                </p>
+                <p style="font-size:14px; opacity:0.9;">
+                    Đồ thị hiện không thỏa điều kiện Euler cho chế độ
+                    <b>${(selectedMode || "auto").toUpperCase()}</b>,
+                    nên không thể trực quan hoá bằng Fleury.
+                </p>
+            `;
+            const svg = document.getElementById("graphArea");
+            if (svg) svg.innerHTML = "";
+            return;
+        }
+
+        drawGraph(data.nodes, data.edges, data.result);
+
+        const info = {
+            mode: selectedMode,
+            ...data.analysis,
+            fleury_path: data.result.path
+        };
+
+        updateInfo(info);
+
+        animateFleury(data.result);
+
+    })
+    .catch(err => console.error(err));
+
+}
+
+function checkEulerPath(analysis) {
+    const odd = Object.values(analysis.degree).filter(d => d % 2 == 1).length;
+    return odd === 2 || odd === 0;
+}
+
+function checkEulerCircuit(analysis) {
+    const odd = Object.values(analysis.degree).filter(d => d % 2 == 1).length;
+    return odd === 0;
+}
+
+function showVisual() {
+    document.getElementById("visualPanel").style.display = "block";
+    document.getElementById("introPanel").style.display = "none";
+    document.getElementById("visualBtn").classList.add("active");
+    document.getElementById("introBtn").classList.remove("active");
+}
+
+function showIntro() {
+    document.getElementById("visualPanel").style.display = "none";
+    document.getElementById("introPanel").style.display = "block";
+    document.getElementById("visualBtn").classList.remove("active");
+    document.getElementById("introBtn").classList.add("active");
+    loadPdfText();
+}
+
+function loadPdfText() {
+    fetch("/api/pdf-text/")
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("pdfTextBox").innerHTML =
+                data.html ? data.html : `<pre>${data.text}</pre>`;
+        })
+        .catch(() => {
+            document.getElementById("pdfTextBox").textContent = "Lỗi tải PDF!";
+        });
+}
+
+</script>
+
+
+</body>
+</html>

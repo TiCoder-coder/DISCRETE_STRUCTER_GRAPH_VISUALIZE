@@ -1,0 +1,281 @@
+I. Đồ thị vô hướng – Fleury trên Graph()--------------------------------------------------------------------------------
+
+1. Chu trình Euler – TRUE (có chu trình)-----------------------------------------------
+
+Tất cả đều là một chu trình đơn đi qua mọi đỉnh.
+
+(4 đỉnh – U_C_T_4)
+
+Đỉnh: A,B,C,D
+
+Cạnh: A-B, B-C, C-D, D-A
+
+(6 đỉnh – U_C_T_6)
+
+Đỉnh: A,B,C,D,E,F
+
+Cạnh: A-B, B-C, C-D, D-E, E-F, F-A
+
+(8 đỉnh – U_C_T_8)
+
+Đỉnh: A,B,C,D,E,F,G,H
+
+Cạnh: A-B, B-C, C-D, D-E, E-F, F-G, G-H, H-A
+
+(10 đỉnh – U_C_T_10)
+
+Đỉnh: A,B,C,D,E,F,G,H,I,J
+
+Cạnh:
+A-B, B-C, C-D, D-E, E-F, F-G, G-H, H-I, I-J, J-A
+
+Mỗi đỉnh bậc 2 → tất cả bậc chẵn → is_euler_undirected trả về chu trình.
+
+2. Chu trình Euler – FALSE (không phải chu trình)-------------------------------------
+
+Các đồ thị dưới đây chỉ có đường đi Euler (2 đỉnh bậc lẻ) nên test “Chu trình Euler” phải cho FALSE.
+
+(4 đỉnh – U_C_F_4)
+
+Đỉnh: A,B,C,D
+
+Cạnh: A-B, B-C, C-D
+
+(6 đỉnh – U_C_F_6)
+
+Đỉnh: A,B,C,D,E,F
+
+Cạnh: A-B, B-C, C-D, D-E, E-F
+
+(8 đỉnh – U_C_F_8)
+
+Đỉnh: A,B,C,D,E,F,G,H
+
+Cạnh: A-B, B-C, C-D, D-E, E-F, F-G, G-H
+
+(10 đỉnh – U_C_F_10)
+
+Đỉnh: A,B,C,D,E,F,G,H,I,J
+
+Cạnh: A-B, B-C, C-D, D-E, E-F, F-G, G-H, H-I, I-J
+
+Chỉ 2 đỉnh bậc lẻ (hai đầu chuỗi) → Euler đường đi, không phải chu trình.
+
+3. Đường đi Euler – TRUE--------------------------------------------------------------
+
+Các đồ thị này đều có đường đi Euler (2 đỉnh bậc lẻ), dùng để test “Đường đi Euler”.
+
+(4 đỉnh – U_P_T_4)
+
+Đỉnh: A,B,C,D
+
+Cạnh: A-B, B-C, C-D, D-A, A-C
+
+Bậc: A=3, C=3 (lẻ), B=2, D=2 → đúng 2 đỉnh bậc lẻ.
+
+(6 đỉnh – U_P_T_6)
+
+Đỉnh: A,B,C,D,E,F
+
+Cạnh:
+A-B, B-C, C-D, D-E, E-F, F-A, A-D
+
+Chỉ A và D bậc 3, các đỉnh khác bậc 2 → có đường đi Euler.
+
+(8 đỉnh – U_P_T_8)
+
+Đỉnh: A,B,C,D,E,F,G,H
+
+Cạnh:
+A-B, B-C, C-D, D-E, E-F, F-G, G-H, H-A, A-E
+
+(10 đỉnh – U_P_T_10)
+
+Đỉnh: A,B,C,D,E,F,G,H,I,J
+
+Cạnh:
+A-B, B-C, C-D, D-E, E-F, F-G, G-H, H-I, I-J, J-A, A-F
+
+Trong mỗi đồ thị: chỉ A và “đỉnh đối diện” (D/E/F) có bậc lẻ → đúng chuẩn “đường đi Euler”.
+
+4. Đường đi Euler – FALSE ----------------------------------------------------------
+
+Các đồ thị này không có Euler path (số đỉnh bậc lẻ > 2).
+Mình dùng dạng ngôi sao cho dễ kiểm tra.
+
+(4 đỉnh – U_P_F_4)
+
+Đỉnh: A,B,C,D
+
+Cạnh: A-B, A-C, A-D
+
+Bậc: A=3, B=C=D=1 → 4 đỉnh bậc lẻ.
+
+(6 đỉnh – U_P_F_6)
+
+Đỉnh: A,B,C,D,E,F
+
+Cạnh: A-B, A-C, A-D, A-E, A-F
+
+(8 đỉnh – U_P_F_8)
+
+Đỉnh: A,B,C,D,E,F,G,H
+
+Cạnh: A-B, A-C, A-D, A-E, A-F, A-G, A-H
+
+(10 đỉnh – U_P_F_10)
+
+Đỉnh: A,B,C,D,E,F,G,H,I,J
+
+Cạnh: A-B, A-C, A-D, A-E, A-F, A-G, A-H, A-I, A-J
+
+Tất cả lá bậc 1, tâm bậc lớn lẻ → nhiều hơn 2 đỉnh bậc lẻ → không có đường đi Euler.
+
+II. Đồ thị có hướng – Fleury trên DiGraph()
+
+Ở đây cạnh A-B được hiểu là cung A → B.
+Dùng điều kiện in/out degree như trong is_euler_directed.
+
+1. Chu trình Euler – TRUE
+
+Đơn giản là một vòng có hướng qua mọi đỉnh.
+
+(4 đỉnh – D_C_T_4)
+
+Đỉnh: A,B,C,D
+
+Cạnh: A-B, B-C, C-D, D-A
+
+(6 đỉnh – D_C_T_6)
+
+Đỉnh: A,B,C,D,E,F
+
+Cạnh: A-B, B-C, C-D, D-E, E-F, F-A
+
+(8 đỉnh – D_C_T_8)
+
+Đỉnh: A,B,C,D,E,F,G,H
+
+Cạnh: A-B, B-C, C-D, D-E, E-F, F-G, G-H, H-A
+
+(10 đỉnh – D_C_T_10)
+
+Đỉnh: A,B,C,D,E,F,G,H,I,J
+
+Cạnh:
+A-B, B-C, C-D, D-E, E-F, F-G, G-H, H-I, I-J, J-A
+
+Mỗi đỉnh: indeg = outdeg = 1 → is_euler_directed trả về chu trình.
+
+2. Chu trình Euler – FALSE
+
+(dùng đồ thị có đường đi Euler nhưng không có chu trình)
+
+(4 đỉnh – D_C_F_4)
+
+Đỉnh: A,B,C,D
+
+Cạnh: A-B, B-C, C-D
+
+(6 đỉnh – D_C_F_6)
+
+Đỉnh: A,B,C,D,E,F
+
+Cạnh: A-B, B-C, C-D, D-E, E-F
+
+(8 đỉnh – D_C_F_8)
+
+Đỉnh: A,B,C,D,E,F,G,H
+
+Cạnh: A-B, B-C, C-D, D-E, E-F, F-G, G-H
+
+(10 đỉnh – D_C_F_10)
+
+Đỉnh: A,B,C,D,E,F,G,H,I,J
+
+Cạnh: A-B, B-C, C-D, D-E, E-F, F-G, G-H, H-I, I-J
+
+Mỗi đồ thị:
+
+Đỉnh A: out=1,in=0 (diff +1 – điểm bắt đầu)
+
+Đỉnh cuối: in=1,out=0 (diff −1 – điểm kết thúc)
+
+Các đỉnh còn lại: in=out=1.
+→ Euler path có, nhưng không phải chu trình.
+
+3. Đường đi Euler – TRUE
+
+Dùng vòng có hướng + 1 cung phụ để tạo đúng hai đỉnh lệch bậc (±1).
+
+(4 đỉnh – D_P_T_4)
+
+Đỉnh: A,B,C,D
+
+Cạnh:
+A-B, B-C, C-D, D-A, A-C
+
+A: out=2,in=1 (diff +1), C: out=1,in=2 (diff −1), B,D cân bằng.
+
+(6 đỉnh – D_P_T_6)
+
+Đỉnh: A,B,C,D,E,F
+
+Cạnh:
+A-B, B-C, C-D, D-E, E-F, F-A, A-D
+
+(8 đỉnh – D_P_T_8)
+
+Đỉnh: A,B,C,D,E,F,G,H
+
+Cạnh:
+A-B, B-C, C-D, D-E, E-F, F-G, G-H, H-A, A-E
+
+(10 đỉnh – D_P_T_10)
+
+Đỉnh: A,B,C,D,E,F,G,H,I,J
+
+Cạnh:
+A-B, B-C, C-D, D-E, E-F, F-G, G-H, H-I, I-J, J-A, A-F
+
+Mỗi đồ thị:
+
+A có out = in + 1 (điểm bắt đầu),
+
+“đỉnh giữa” (C/D/E/F) có in = out + 1 (điểm kết thúc),
+
+các đỉnh khác cân bằng.
+→ is_euler_directed trả về path.
+
+4. Đường đi Euler – FALSE
+
+Dùng ngôi sao có hướng từ tâm A ra các lá; điều kiện in/out bị vỡ nặng.
+
+(4 đỉnh – D_P_F_4)
+
+Đỉnh: A,B,C,D
+
+Cạnh: A-B, A-C, A-D
+
+A: out=3,in=0 (diff +3 – |diff| > 1), B,C,D: diff −1.
+is_euler_directed gặp diff=3 sẽ trả về FALSE ngay.
+
+(6 đỉnh – D_P_F_6)
+
+Đỉnh: A,B,C,D,E,F
+
+Cạnh: A-B, A-C, A-D, A-E, A-F
+
+(8 đỉnh – D_P_F_8)
+
+Đỉnh: A,B,C,D,E,F,G,H
+
+Cạnh: A-B, A-C, A-D, A-E, A-F, A-G, A-H
+
+(10 đỉnh – D_P_F_10)
+
+Đỉnh: A,B,C,D,E,F,G,H,I,J
+
+Cạnh: A-B, A-C, A-D, A-E, A-F, A-G, A-H, A-I, A-J
+
+Tâm A luôn có out - in ≥ 3 → vi phạm điều kiện cần của Euler path/circuit.

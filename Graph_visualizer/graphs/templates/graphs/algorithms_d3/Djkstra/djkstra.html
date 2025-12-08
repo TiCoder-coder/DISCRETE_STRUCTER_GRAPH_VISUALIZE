@@ -1,0 +1,583 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GRAPH VISUALIZE DIJKSTRA ALGORITHM</title>
+
+<style>
+#graphArea {
+    overflow: hidden !important;
+}
+
+.run-btn {
+    margin-top: 18px;
+    margin-bottom: 10px;
+    padding: 14px 28px !important;
+    font-size: 18px !important;
+    border-radius: 12px !important;
+    background: linear-gradient(135deg, #00f58a, #41ffd1);
+    color: #000;
+    font-weight: 600;
+    box-shadow: 0 0 12px rgba(0,255,180,0.6);
+    cursor: pointer;
+}
+
+.run-btn:hover {
+    transform: scale(1.10);
+    background: linear-gradient(135deg, #35ff9d, #7affde);
+    box-shadow: 0 0 18px rgba(0,255,200,0.9);
+}
+
+.home-btn { 
+    position: absolute; 
+    top: 20px; 
+    left: 30px; 
+    color: #41ffd1; 
+    text-decoration: none; 
+    border: 1px solid #41ffd1; 
+    padding: 5px 15px; 
+    border-radius: 5px; 
+    background: rgba(0,0,0,0.5); 
+}
+
+body {
+    background-image: url("{% static 'graphs/images/purple_wave.png' %}");
+    background-size: cover;
+    background-position: 80px;
+    background-attachment: fixed;
+    font-family: 'Inter', sans-serif;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+.container {
+    width: 85%;
+    margin: auto;
+    padding-top: 0px !important;
+}
+
+h1 {
+    font-size: 52px;
+    margin: 24px auto 32px;
+    padding: 14px 80px;
+    display: block;
+    width: fit-content;
+
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-weight: 800;
+
+    background: linear-gradient(120deg, #1f2b7a, #3f51b5, #00e5ff);
+    border-radius: 999px;
+    box-shadow: 0 0 22px rgba(0, 229, 255, 0.55);
+
+    color: #ffffff;
+    -webkit-text-fill-color: #faf7f7;
+    text-shadow: 0 0 10px rgba(0,0,0,0.45);
+}
+
+h1::after {
+    content: none;
+}
+
+.tab-buttons {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.tab-btn {
+    padding: 12px 26px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 10px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .25s;
+    background: rgba(255,255,255,0.2);
+    color: #ffffff;
+    backdrop-filter: blur(6px);
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, #00e28a, #3dffcb);
+    color: black;
+    transform: scale(1.06);
+}
+
+.tab-btn:hover {
+    transform: scale(1.06);
+}
+
+.glass-box {
+    background: rgba(255,255,255,0.08);
+    padding: 25px;
+    border-radius: 14px;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.45);
+    margin-bottom: 40px;
+}
+
+.neon-title {
+    font-size: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+
+    background: linear-gradient(90deg, #00fff0, #41ffd1, #ffe66d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    text-shadow: 0 0 10px rgba(0,255,200,0.8),
+                 0 0 18px rgba(0,200,255,0.7);
+
+    position: relative;
+    display: inline-block;
+}
+
+.neon-title::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+
+    width: 100%;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #00e28a, #41ffd1);
+    box-shadow: 0 0 10px rgba(0,255,200,0.8);
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    font-size: 17px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(180,150,255,0.45);
+    border-radius: 12px;
+    color: #e8ebff;
+    outline: none;
+    transition: .25s;
+}
+
+input:focus {
+    border-color: #c9b2ff;
+    background: rgba(255,255,255,0.18);
+    box-shadow: 0 0 15px #cdb3ff;
+}
+
+button {
+    padding: 12px 24px;
+    font-size: 17px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #00d277, #21ffba);
+    color: #0c0c0c;
+    cursor: pointer;
+    font-weight: 600;
+    transition: .25s;
+}
+
+button:hover {
+    transform: scale(1.08);
+    background: linear-gradient(135deg, #0aff8a, #5affcc);
+}
+
+svg {
+    width: auto;
+    height: auto;
+    min-width: 100%;
+    min-height: 600px;
+
+    overflow: visible !important;
+
+    border-radius: 16px;
+    background: rgba(0,0,0,0.20);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.node {
+    transition: none !important;
+    stroke: #ffffff;
+    stroke-width: 2px;
+}
+
+.start-node {
+    fill: #00e676 !important;
+}
+
+.end-node {
+    fill: #ff5252 !important;
+}
+
+.edge {
+    stroke: #00ffcc;
+    stroke-width: 3;
+}
+
+.edge-label {
+    pointer-events: none;
+    text-shadow: 0 0 4px rgba(0,0,0,0.8);
+}
+.shortest-edge {
+    stroke: #ff9800;
+    stroke-width: 6;
+    filter: drop-shadow(0 0 6px #ff9800);
+}
+
+.node:hover { filter: none !important; }
+
+.highlight-node {
+    fill: #f7d206 !important;
+    filter: drop-shadow(0 0 15px #f7d206);
+}
+
+.highlight-edge { stroke: #ff4704 !important; stroke-width: 7 !important; }
+.edge {
+    stroke-linecap: round;
+}
+
+.edge.glow {
+    filter: drop-shadow(0 0 10px #ffb74d);
+}
+
+#pdfTextBox {
+    white-space: pre-line;
+    background: rgba(0,0,0,0.35);
+    padding: 25px;
+    border-radius: 14px;
+    color: #e8eaff;
+    backdrop-filter: blur(10px);
+    font-size: 17px;
+    line-height: 1.7;
+    margin-top: 25px;
+    box-shadow: inset 0 0 25px rgba(0,0,0,0.4);
+}
+
+.pdf-wrapper {
+    background: rgba(255,255,255,0.06);
+    border-radius: 18px;
+    padding: 35px;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 8px 35px rgba(0,0,0,0.45);
+    backdrop-filter: blur(14px);
+    margin-top: 25px;
+}
+
+.pdf-header {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 25px;
+    color: #dff3ff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pdf-header i {
+    font-size: 30px;
+    color: #79d7ff;
+    filter: drop-shadow(0 0 6px #79d7ff);
+}
+
+#pdfTextBox {
+    white-space: pre-wrap;
+    font-size: 18px;
+    line-height: 1.85;
+    padding: 25px;
+    color: #ffffff;
+    background: rgba(0,0,0,0.28);
+    border-radius: 14px;
+    border-left: 4px solid #70d6ff;
+    box-shadow: inset 0 0 22px rgba(0,0,0,0.4);
+}
+
+#infoPanel {
+    font-size: 16px !important;
+    line-height: 1.55 !important;
+    color: #e9ecff !important;
+}
+
+#infoPanel h3 {
+    font-size: 18px !important;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+#infoPanel pre,
+#infoPanel p,
+#infoPanel div {
+    font-size: 16px !important;
+    font-family: inherit !important;
+    line-height: 1.55 !important;
+}
+.info-section-title {
+    margin-top: 16px;
+    margin-bottom: 6px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffe082;
+}
+
+.path-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.15);
+    font-size: 15px;
+    margin-bottom: 10px;
+}
+.path-chip span {
+    font-weight: 700;
+    color: #41ffd1;
+}
+
+.info-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 16px;
+    font-size: 14px;
+    background: rgba(8, 20, 60, 0.75);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.info-table thead {
+    background: linear-gradient(90deg, #00e28a, #41ffd1);
+    color: #041021;
+}
+
+.info-table th,
+.info-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.09);
+    text-align: center;
+}
+
+.info-table tbody tr:nth-child(odd) {
+    background: rgba(255,255,255,0.02);
+}
+
+.info-table tbody tr:hover {
+    background: rgba(65,255,209,0.15);
+}
+
+.info-table td.text-left {
+    text-align: left;
+}
+
+.info-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    background: rgba(0,0,0,0.45);
+    border: 1px solid rgba(255,255,255,0.15);
+}
+
+</style>
+</head>
+
+<body>
+<form style="display:none;">{% csrf_token %}</form>
+
+<a href="/" class="home-btn">⬅ Trang Chủ</a>
+<div class="container">
+
+    <h1>GRAPH VISUALIZE DIJKSTRA ALGORITHM</h1>
+
+    <div class="tab-buttons">
+        <button id="visualBtn" class="tab-btn active" onclick="showVisual()">Trực quan hoá</button>
+        <button id="introBtn" class="tab-btn" onclick="showIntro()">Giới thiệu thuật toán</button>
+    </div>
+
+    <div id="visualPanel">
+
+        <div class="glass-box" style="margin-top: 5px;">
+
+            <h3 class="neon-title">GIỚI THIỆU VỀ DIJKSTRA:</h3>
+            <h3>
+                <p><b>Ý tưởng:</b> Dijkstra tìm đường đi ngắn nhất từ một đỉnh nguồn đến các đỉnh còn lại trong đồ thị có trọng số không âm.</p>
+                <p><b>Bước 1:</b> Khởi tạo khoảng cách ban đầu:
+                    <br>– dist[start] = 0
+                    <br>– dist[các đỉnh khác] = ∞
+                </p>
+                <p><b>Bước 2:</b> Lặp lại:
+                    <br>– Chọn đỉnh chưa xét có khoảng cách nhỏ nhất (current).
+                    <br>– Cập nhật dist của các đỉnh kề: 
+                    <code>dist[v] = min(dist[v], dist[current] + w(current, v))</code>.
+                </p>
+                <p><b>Bước 3:</b> Đánh dấu đỉnh current đã xử lý. 
+                    Khi không còn đỉnh chưa xử lý hoặc đã đến đỉnh đích → dừng.
+                </p>
+                <p><b>Kết quả:</b> Nhận được đường đi ngắn nhất và tổng trọng số nhỏ nhất.</p>
+            </h3>
+
+            <h3 class="neon-title">CHỌN ĐỒ THỊ</h3>
+            <div style="margin: 20px 0; text-align:center;">
+                <button id="btn-undirected" class="tab-btn active">Đồ thị vô hướng</button>
+                <button id="btn-directed" class="tab-btn">Đồ thị có hướng</button>
+            </div>
+
+            <script>
+            document.getElementById("btn-undirected").onclick = function () {
+                window.setGraphType("undirected");
+                if (typeof setDijkstraGraphType === "function") {
+                    setDijkstraGraphType("undirected");
+                }
+                this.classList.add("active");
+                document.getElementById("btn-directed").classList.remove("active");
+            };
+
+            document.getElementById("btn-directed").onclick = function () {
+                window.setGraphType("directed");
+                if (typeof setDijkstraGraphType === "function") {
+                    setDijkstraGraphType("directed");
+                }
+                this.classList.add("active");
+                document.getElementById("btn-undirected").classList.remove("active");
+            };
+            </script>
+
+            <p class="neon-title"><b>NHẬP CÁC ĐỈNH CHO ĐỒ THỊ:</b> (VD: A,B,C,D)</p>
+            <input id="nodes" placeholder="A,B,C,D">
+
+            <p class="neon-title">
+                <b>NHẬP CÁC CẠNH CÓ TRỌNG SỐ:</b> 
+                (VD: A-B:5, B-C:3, C-D:4, A-D:10)
+            </p>
+            <input id="edges" placeholder="A-B:5,B-C:3,C-D:4,A-D:10">
+
+            <p class="neon-title label" style="margin-top:18px;">ĐỈNH BẮT ĐẦU</p>
+            <input id="startNode" placeholder="VD: A">
+
+            <p class="neon-title label" style="margin-top:10px;">ĐỈNH KẾT THÚC</p>
+            <input id="endNode" placeholder="VD: D">
+
+            <div style="margin-top: 20px; display:flex; gap:14px; flex-wrap:wrap;">
+                <button class="run-btn" onclick="runDijkstraFinal()">Chạy thuật toán Dijkstra</button>
+            </div>
+
+        </div>
+
+        <div class="glass-box" style="
+            display: flex;
+            gap: 25px;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 25px;
+        ">
+
+            <div style="
+                flex: 2.3;
+                height: 1200px;
+                padding: 0;
+                overflow-y: auto;
+                overflow-x: auto;
+                border-radius: 16px;
+                background: rgba(0,0,0,0.20);
+                border: 1px solid rgba(255,255,255,0.12);
+            ">
+                <div style="
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                ">
+                    <svg id="graphArea"
+                        style="
+                            width: 1800px;
+                            height: 1200px;
+                            background: rgba(0,0,0,0.20);
+                            border-radius: 16px;
+                            border: 1px solid rgba(255,255,255,0.12);
+                            overflow: visible !important;
+                        ">
+                    </svg>
+                </div>
+            </div>
+
+            <div id="infoPanel" style="
+                flex: 1;
+                padding: 22px;
+                height: 1100px;
+                overflow-y: auto;
+                border-radius: 14px;
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.15);
+                margin-top: 40px;
+            ">
+                <h3 style="margin-bottom: 10px;">THÔNG TIN ĐỒ THỊ</h3>
+                <div id="infoContent">Chưa có dữ liệu...</div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="introPanel" style="display:none;">
+
+        <div class="glass-box">
+
+            <div class="pdf-wrapper">
+                <div class="pdf-header">
+                    <i></i> Giới thiệu thuật toán Dijkstra
+                </div>
+                <div id="pdfTextBox">Đang tải nội dung PDF...</div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<script>
+    window.graphType = "undirected";   
+    window.setGraphType = (t) => window.graphType = t;
+    window.getGraphType = () => window.graphType;
+</script>
+
+<script src="/static/graphs/js/algorithms_d3/Djkstra/djkstra.js?v=20250300"></script>
+
+<script>
+function showVisual() {
+    document.getElementById("visualPanel").style.display = "block";
+    document.getElementById("introPanel").style.display = "none";
+    document.getElementById("visualBtn").classList.add("active");
+    document.getElementById("introBtn").classList.remove("active");
+}
+
+function showIntro() {
+    document.getElementById("visualPanel").style.display = "none";
+    document.getElementById("introPanel").style.display = "block";
+    document.getElementById("visualBtn").classList.remove("active");
+    document.getElementById("introBtn").classList.add("active");
+    loadPdfText();
+}
+
+function loadPdfText() {
+    fetch("/api/pdf-text/dijkstra/")
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("pdfTextBox").innerHTML =
+                data.html ? data.html : `<pre>${data.text}</pre>`;
+        })
+        .catch(() => {
+            document.getElementById("pdfTextBox").textContent = "Lỗi tải PDF!";
+        });
+}
+</script>
+
+</body>
+</html>

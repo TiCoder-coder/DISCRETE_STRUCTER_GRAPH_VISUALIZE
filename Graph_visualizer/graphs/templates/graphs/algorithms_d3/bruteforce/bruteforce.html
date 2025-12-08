@@ -1,0 +1,415 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>BRUTE FORCE – ĐƯỜNG ĐI NGẮN NHẤT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background: url("{% static 'graphs/images/purple_wave.png' %}") center/cover fixed; 
+            font-family: 'Inter', sans-serif; 
+            color: #fff; 
+            margin: 0; 
+            padding: 0; 
+            overflow-x: hidden; 
+        }
+        .container { width: 85%; margin: auto; padding-top: 20px; }
+        h1 { 
+            font-size: 52px; 
+            margin: 24px auto 32px; 
+            padding: 14px 80px; 
+            width: fit-content; 
+            text-transform: uppercase; 
+            letter-spacing: 3px; 
+            font-weight: 800; 
+            background: linear-gradient(120deg, #1f2b7a, #3f51b5, #00e5ff); 
+            border-radius: 999px; 
+            box-shadow: 0 0 22px rgba(0,229,255,0.55); 
+            text-shadow: 0 0 10px rgba(0,0,0,0.45); 
+        }
+        .tab-buttons { text-align: center; margin-bottom: 30px; }
+        .tab-btn { 
+            padding: 12px 26px; 
+            margin: 0 10px; 
+            border: none; 
+            border-radius: 10px; 
+            font-size: 17px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            background: rgba(255,255,255,0.2); 
+            color: #fff; 
+            backdrop-filter: blur(6px); 
+            transition: .25s; 
+        }
+        .tab-btn.active { 
+            background: linear-gradient(135deg, #00e28a, #3dffcb); 
+            color: #000; 
+            transform: scale(1.06); 
+        }
+        .glass-box {
+            background: rgba(255,255,255,0.08);
+            padding: 25px;
+            border-radius: 14px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.45);
+            margin-bottom: 40px;
+}
+        .neon-title { 
+            font-size: 20px; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            margin-bottom: 10px; 
+            background: linear-gradient(90deg, #00fff0, #41ffd1, #ffe66d); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            text-shadow: 0 0 10px rgba(0,255,200,0.8); 
+            position: relative; 
+        }
+        .neon-title::after { 
+            content: ""; 
+            position: absolute; 
+            left: 0; 
+            bottom: -6px; 
+            width: 100%; 
+            height: 2px; 
+            background: linear-gradient(90deg, #00e28a, #41ffd1); 
+            box-shadow: 0 0 10px rgba(0,255,200,0.8); 
+            border-radius: 999px; 
+        }
+        input, select { 
+            width: 100%; 
+            padding: 14px; 
+            font-size: 17px; 
+            background: rgba(255,255,255,0.12); 
+            border: 1px solid rgba(180,150,255,0.45); 
+            border-radius: 12px; 
+            color: #e8ebff; 
+            outline: none; 
+            transition: .25s; 
+        }
+        input:focus, select:focus { 
+            border-color: #c9b2ff; 
+            background: rgba(255,255,255,0.18); 
+            box-shadow: 0 0 15px #cdb3ff; 
+        }
+        svg { 
+            width: 100%; 
+            min-height: 1500px; 
+            background: rgba(0,0,0,0.20); 
+            border-radius: 16px; 
+            border: 1px solid rgba(255,255,255,0.1); 
+        }
+        .mode-btn { 
+            padding: 12px 28px; 
+            margin: 5px; 
+            cursor: pointer; 
+            border-radius: 8px; 
+            background: #222; 
+            color: #fff; 
+            border: 1px solid #555; 
+        }
+        .mode-btn.active { 
+            background: #0080ff; 
+            border-color: #0080ff; 
+        }
+        .run-btn { 
+            margin: 18px 0 10px; 
+            padding: 14px 28px; 
+            font-size: 18px; 
+            border-radius: 12px; 
+            background: linear-gradient(135deg, #00f58a, #41ffd1); 
+            color: #000; 
+            font-weight: 600; 
+            box-shadow: 0 0 12px rgba(0,255,180,0.6); 
+            cursor: pointer; 
+            transition: .25s; 
+        }
+        .run-btn:hover { 
+            transform: scale(1.10); 
+            background: linear-gradient(135deg, #35ff9d, #7affde); 
+            box-shadow: 0 0 18px rgba(0,255,200,0.9); 
+        }
+        #totalWeight { 
+            font-size: 30px; 
+            font-weight: bold; 
+            color: #00ffea; 
+            text-shadow: 0 0 15px #00ffea; 
+            margin-left: 10px; 
+        }
+        .info-section-title {
+            margin-top: 10px;
+            margin-bottom: 4px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #ffe082;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 6px 0 12px;
+            font-size: 13px;
+            background: rgba(8, 20, 60, 0.75);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .info-table thead {
+            background: linear-gradient(90deg, #00e28a, #41ffd1);
+            color: #041021;
+        }
+
+        .info-table th,
+        .info-table td {
+            padding: 4px 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.09);
+            text-align: center;
+        }
+
+        .info-table tbody tr:nth-child(odd) {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .info-table tbody tr:hover {
+            background: rgba(65,255,209,0.15);
+        }
+
+        .info-table td.text-left {
+            text-align: left;
+        }
+
+        #infoContent { 
+            min-height: 500px; 
+            font-size: 16px; 
+            line-height: 1.8; 
+            color: #e0e7ff; 
+        }
+        .pdf-wrapper {
+    background: linear-gradient(135deg, rgba(32, 43, 122, 0.75), rgba(94, 52, 182, 0.6));
+    padding: 40px;
+    border-radius: 22px;
+    border: 2px solid rgba(0, 255, 255, 0.35);
+    box-shadow: 0 0 22px rgba(0, 255, 255, 0.25);
+    backdrop-filter: blur(12px);
+}
+.pdf-header {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(0,0,0,0.6);
+}
+.pdf-header i {
+    font-size: 30px;
+    color: #79d7ff;
+    filter: drop-shadow(0 0 6px #79d7ff);
+}
+
+#pdfTextBox {
+    background: rgba(0, 0, 0, 0.55); 
+    padding: 28px;
+    border-radius: 16px;
+    font-size: 18px;
+    line-height: 1.8;
+    color: #e6e6e6;        
+    border-left: 4px solid #3df5ff;
+    box-shadow: inset 0 0 20px rgba(0,255,255,0.25);
+    white-space: pre-wrap;
+}
+#pdfTextBox * {
+    color: #e6e6e6 !important;     
+    background: transparent !important;
+}
+.container { 
+    position: relative; 
+    width: 85%; 
+    margin: auto; 
+    padding-top: 20px; 
+}
+
+
+#homeButtonContainer {
+    position: absolute; 
+    top: 0px;  
+    left: -110px;
+    z-index: 10;
+}
+
+
+#homeBtn {
+    padding: 6px 10px; 
+    font-size: 14px; 
+    font-weight: 600;
+    cursor: pointer;
+    
+
+    background: rgba(255, 255, 255, 0.15); 
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 6px; 
+    backdrop-filter: blur(5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    transition: .2s;
+}
+
+#homeBtn:hover {
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+</style>
+</head>
+<body>
+<div class="container">
+
+
+    <div id="homeButtonContainer">
+        <button id="homeBtn" onclick="window.location.href='/'">&#x2190; Trang Chủ</button>
+    </div>
+
+    <h1>BRUTE FORCE – ĐƯỜNG ĐI NGẮN NHẤT</h1>
+
+    <div class="tab-buttons">
+        <button id="visualBtn" class="tab-btn active">Trực quan hoá</button>
+        <button id="introBtn" class="tab-btn">Giới thiệu thuật toán</button>
+    </div>
+
+    <div id="visualPanel">
+
+
+        <div class="glass-box" style="margin-top: 5px;">
+            <h2 class="neon-title">GIỚI THIỆU VỀ BRUTEFORCE:</h2>
+
+            <p>1. Khởi tạo</p>
+            <p>- Đặt chi phí nhỏ nhất ban đầu min_cost = ∞.</p>
+            <p>- Đặt best_path = rỗng.</p>
+
+            <p>2. Tạo các đường đi có thể</p>
+            <p>- Lấy tất cả hoán vị của các đỉnh trung gian.</p>
+            <p>- Tạo đường đi dạng: Start → [hoán vị] → End.</p>
+
+            <p>3. Kiểm tra từng đường đi</p>
+            <p>- Kiểm tra xem đường đi có tồn tại đầy đủ các cạnh hay không.</p>
+            <p>- Nếu hợp lệ, tính tổng trọng số của đường đi.</p>
+
+            <p>4. So sánh và chọn đường tốt nhất</p>
+            <p>- Nếu tổng trọng số nhỏ hơn min_cost → cập nhật min_cost và best_path.</p>
+            <p>- Nếu lớn hơn hoặc đường đi không hợp lệ → bỏ qua.</p>
+
+            <p>5. Kết quả</p>
+            <p>- Sau khi duyệt hết, best_path là đường đi ngắn nhất (nếu tồn tại).</p>
+        </div>
+
+        <div class="glass-box">
+            <h3 class="neon-title">NHẬP DANH SÁCH ĐỈNH</h3>
+            <input id="nodes" placeholder="VD: A,B,C,D,E">
+
+            <h3 class="neon-title">NHẬP CÁC CẠNH VÀ TRỌNG SỐ</h3>
+            <input id="edges" placeholder="VD: A-B-4, A-C-8, B-D-5, C-E-3">
+
+            <h3 class="neon-title">ĐIỂM BẮT ĐẦU</h3>
+            <select id="startNode"><option value="">-- Chọn đỉnh --</option></select>
+
+            <h3 class="neon-title">ĐIỂM KẾT THÚC</h3>
+            <select id="endNode"><option value="">-- Chọn đỉnh --</option></select>
+
+            <div style="text-align:center; margin:20px 0;">
+                <button id="btnUndirected" class="mode-btn active">Đồ thị vô hướng</button>
+                <button id="btnDirected" class="mode-btn">Đồ thị có hướng</button>
+            </div>
+
+            <div style="text-align:center;">
+                <button class="run-btn" onclick="runBruteforceMain()">CHẠY VÉT CẠN</button>
+            </div>
+        </div>
+
+        <div class="glass-box" style="display:flex; gap:30px;">
+            <div style="flex:2.5;">
+                <svg id="graphArea"></svg>
+
+                <div style="text-align:center; margin-top:20px;">
+                    <span style="font-size:24px;">Chi phí nhỏ nhất:</span>
+                    <span id="totalWeight">0</span>
+                </div>
+            </div>
+            <div style="flex:1; background:rgba(255,255,255,0.08); padding:20px; border-radius:14px; height:1500px; overflow-y:auto;">
+
+
+                <h3 style="color:#79d7ff; margin-top:0;">THÔNG TIN ĐỒ THỊ</h3>
+                <div id="graphInfoBox">
+                    Chưa có dữ liệu đồ thị...
+                </div>
+
+                <hr style="margin:18px 0; border-color:rgba(255,255,255,0.18);">
+
+                <h3 style="color:#79d7ff;">QUÁ TRÌNH THỰC HIỆN</h3>
+                <div id="infoContent">
+                    Chưa chạy thuật toán...
+                </div>
+            </div>
+
+        </div>
+
+    </div> 
+
+    <div id="introPanel" style="display:none;">
+
+        <div class="glass-box">
+            <div class="pdf-wrapper">
+                <div class="pdf-header">
+                    <i></i> Giới thiệu thuật toán Bruteforce
+                </div>
+
+                <div id="pdfTextBox">Đang tải nội dung PDF...</div>
+            </div>
+        </div>
+
+    </div>
+
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="{% static 'graphs/js/algorithms_d3/bruteforce/bruteforce.js' %}"></script>
+
+<script>
+
+document.getElementById("visualBtn").onclick = () => {
+    document.getElementById("visualPanel").style.display = "block";
+    document.getElementById("introPanel").style.display = "none";
+    document.getElementById("visualBtn").classList.add("active");
+    document.getElementById("introBtn").classList.remove("active");
+};
+
+document.getElementById("introBtn").onclick = () => {
+    document.getElementById("visualPanel").style.display = "none";
+    document.getElementById("introPanel").style.display = "block";
+    document.getElementById("visualBtn").classList.remove("active");
+    document.getElementById("introBtn").classList.add("active");
+
+
+    if (document.getElementById("pdfTextBox").innerHTML.includes("Đang tải")) {
+        fetch("/api/graph/get_pdf_text_bruteforce/")
+            .then(res => {
+            if (!res.ok) throw new Error("Không tải được PDF");
+            return res.json();
+        })
+        .then(data => {
+            if (data.html) {
+                document.getElementById("pdfTextBox").innerHTML = data.html;
+            } else if (data.text) {
+                document.getElementById("pdfTextBox").innerHTML = `<pre>${data.text}</pre>`;
+            } else {
+                document.getElementById("pdfTextBox").innerHTML = "Không có nội dung.";
+            }
+        })
+        .catch(() => {
+            document.getElementById("pdfTextBox").innerHTML = 
+                "<span style='color:#ff6688'>Lỗi tải nội dung giới thiệu thuật toán Prim!</span>";
+        });
+    }
+}
+</script>
+</body>
+</html>

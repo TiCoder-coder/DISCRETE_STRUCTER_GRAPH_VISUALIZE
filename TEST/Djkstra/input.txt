@@ -1,0 +1,136 @@
+I. Test ĐÚNG (tất cả trọng số ≥ 0)
+1. 6 đỉnh – Valid
+
+Test 6-OK
+
+Nodes:
+A,B,C,D,E,F
+
+Edges:
+A-B:4, A-C:2, B-C:1, B-D:5, C-D:8, C-E:10, D-E:2, D-F:6, E-F:3
+
+Start: A
+
+End: F
+
+Gợi ý: có nhiều đường đi, đường ngắn nhất sẽ đi qua cả nhánh trái và nhánh phải → hợp để xem bảng dist & bước tô màu.
+
+2. 8 đỉnh – Valid
+
+Test 8-OK
+
+Nodes:
+A,B,C,D,E,F,G,H
+
+Edges:
+A-B:3, A-C:2, B-D:4, C-D:1, C-E:7, D-E:2, D-F:3, E-G:4, F-H:5, G-H:1
+
+Start: A
+
+End: H
+
+Gợi ý: có nhiều đường từ A đến H, trong đó đoạn D-E-G-H tạo ra một nhánh “rẻ” hơn để Dijkstra thể hiện rõ.
+
+3. 10 đỉnh – Valid
+
+Test 10-OK
+
+Nodes:
+A,B,C,D,E,F,G,H,I,J
+
+Edges:
+A-B:2, A-C:5, B-D:4, B-E:2, C-E:1, C-F:7, D-G:3, E-G:2, E-H:4, F-H:1, G-I:3, H-I:2, H-J:6, I-J:1
+
+Start: A
+
+End: J
+
+Gợi ý: có rất nhiều đường khác nhau, giúp bạn xem rõ cách dist được cập nhật qua các bước.
+
+4. 20 đỉnh – Valid
+
+Test 20-OK
+
+Nodes:
+A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T
+
+Edges (hơi dài, copy cả dòng):
+
+A-B:2, A-C:4, B-D:3, B-E:5, C-F:6, C-G:2, D-H:4, E-H:1, E-I:7, F-I:3, F-J:5, G-J:2, G-K:4, H-L:3, I-M:2, J-N:4, K-N:3, K-O:6, L-P:5, M-P:2, M-Q:4, N-R:3, O-R:2, O-S:5, P-T:6, Q-T:3, R-T:2, S-T:4
+
+Start: A
+
+End: T
+
+Gợi ý: đồ thị khá to, nhiều nhánh song song → rất đẹp để xem bảng khoảng cách, bảng “marked / unmarked” và đường đi ngắn nhất.
+
+II. Test SAI (có trọng số âm → Dijkstra phải báo lỗi / từ chối)
+
+Ở các test sau, chỉ khác test “OK” là có 1 cạnh mang trọng số âm.
+Bạn dùng đúng Nodes / Start / End, chỉ đổi phần Edges như mình ghi là được.
+
+5. 6 đỉnh – Có trọng số âm
+
+Test 6-NEG
+
+Nodes:
+A,B,C,D,E,F
+
+Edges (cạnh C-D bị âm):
+A-B:4, A-C:2, B-C:1, B-D:5, C-D:-3, C-E:10, D-E:2, D-F:6, E-F:3
+
+Start: A
+
+End: F
+
+Kỳ vọng: Backend Dijkstra của bạn sẽ ném exception / trả error vì gặp trọng số âm → UI hiển thị thông báo lỗi (không chạy trực quan hoá).
+
+6. 8 đỉnh – Có trọng số âm
+
+Test 8-NEG
+
+Nodes:
+A,B,C,D,E,F,G,H
+
+Edges (cạnh D-E bị âm):
+A-B:3, A-C:2, B-D:4, C-D:1, C-E:7, D-E:-2, D-F:3, E-G:4, F-H:5, G-H:1
+
+Start: A
+
+End: H
+
+Kỳ vọng: Thuật toán báo lỗi “có trọng số âm nên không dùng được Dijkstra”.
+
+7. 10 đỉnh – Có trọng số âm
+
+Test 10-NEG
+
+Nodes:
+A,B,C,D,E,F,G,H,I,J
+
+Edges (cạnh F-H bị âm):
+
+A-B:2, A-C:5, B-D:4, B-E:2, C-E:1, C-F:7, D-G:3, E-G:2, E-H:4, F-H:-1, G-I:3, H-I:2, H-J:6, I-J:1
+
+Start: A
+
+End: J
+
+Kỳ vọng: Dijkstra dừng và trả lỗi do có cạnh trọng số âm.
+
+8. 20 đỉnh – Có trọng số âm
+
+Test 20-NEG
+
+Nodes:
+A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T
+
+Edges (cạnh Q-T âm):
+
+A-B:2, A-C:4, B-D:3, B-E:5, C-F:6, C-G:2, D-H:4, E-H:1, E-I:7, F-I:3, F-J:5, G-J:2, G-K:4, H-L:3, I-M:2, J-N:4, K-N:3, K-O:6, L-P:5, M-P:2, M-Q:4, N-R:3, O-R:2, O-S:5, P-T:6, Q-T:-3, R-T:2, S-T:4
+
+Start: A
+
+End: T
+
+Kỳ vọng: Với kích thước 20 đỉnh + 1 cạnh âm, bạn kiểm tra luôn xem hàm Dijkstra của mình phát hiện trọng số âm “sớm” hay “trễ”, và message hiển thị trên panel thông tin.

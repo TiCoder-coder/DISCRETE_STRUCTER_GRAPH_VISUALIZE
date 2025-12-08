@@ -1,0 +1,1 @@
+web: cd Graph_visualizer && gunicorn Graph_visualizer.wsgi:application --bind 0.0.0.0:$PORT

@@ -1,0 +1,641 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>GRAPH VISUALIZE BELLMAN-FORD</title>
+<style>
+body {
+    background-image: url("{% static 'graphs/images/purple_wave.png' %}"); 
+    background-position: center; background-attachment: fixed; background-size: cover;
+    font-family: 'Inter', sans-serif; color: #ffffff;
+    margin: 0; padding: 0; overflow-x: hidden; background-color: #0b0c2a;
+}
+
+.container { width: 85%; margin: auto; padding-top: 20px; padding-bottom: 50px; }
+
+h1 {
+    font-size: 38px; text-align: center; margin: 20px 0 30px 0;
+    background: linear-gradient(90deg, #1f2b7a, #3f51b5, #00e5ff);
+    padding: 15px 60px; border-radius: 50px; display: inline-block;
+    box-shadow: 0 0 25px rgba(0,229,255,0.4);
+    text-transform: uppercase; letter-spacing: 2px;
+    position: relative; left: 50%; transform: translateX(-50%); white-space: nowrap;
+}
+
+.tab-buttons { text-align: center; margin-bottom: 25px; }
+.tab-btn {
+    padding: 12px 24px; margin: 0 10px; border: none; border-radius: 8px;
+    font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.3s;
+    background: rgba(255,255,255,0.15); color: #fff; backdrop-filter: blur(4px);
+}
+.tab-btn.active {
+    background: linear-gradient(135deg, #00f58a, #41ffd1);
+    color: #000; transform: scale(1.05); box-shadow: 0 0 15px rgba(0, 245, 138, 0.5);
+}
+
+.glass-box {
+    background: rgba(255,255,255,0.06); padding: 30px; border-radius: 16px;
+    backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5); margin-bottom: 30px;
+}
+
+.section-label { color: #41ffd1; font-weight: bold; margin-top: 20px; display: block; font-size: 14px; text-transform: uppercase; }
+input, select {
+    width: 100%; padding: 12px; font-size: 16px; margin-top: 5px;
+    background: rgba(0,0,0,0.3); border: 1px solid rgba(65, 255, 209, 0.3);
+    border-radius: 8px; color: #fff; outline: none; box-sizing: border-box;
+}
+input:focus { border-color: #41ffd1; box-shadow: 0 0 8px rgba(65, 255, 209, 0.5); }
+
+.action-btn {
+    padding: 12px 24px; font-size: 16px; font-weight: 700;
+    background: linear-gradient(135deg, #00f58a, #41ffd1);
+    color: #000; border: none; border-radius: 8px; cursor: pointer;
+    transition: 0.3s; margin-top: 15px; margin-right: 10px;
+}
+.action-btn:hover { transform: translateY(-2px); box-shadow: 0 0 20px rgba(0, 245, 138, 0.6); }
+
+.control-bar { margin-top: 15px; display: none; align-items: center; gap: 10px;}
+.ctrl-btn {
+    padding: 8px 16px; border: 1px solid #41ffd1; background: rgba(0,0,0,0.3);
+    color: #41ffd1; border-radius: 6px; cursor: pointer; transition: 0.2s;
+}
+.ctrl-btn:hover { background: #41ffd1; color: #000; }
+
+.viz-container { display: flex; gap: 25px; height: 900px; position: relative; }
+
+.graph-wrapper {
+    flex: 2.5; background: rgba(0,0,0,0.4); border-radius: 16px;
+    border: 1px solid rgba(255, 204, 0, 0.2); overflow: hidden; position: relative;
+}
+
+.status-box {
+    position: absolute; top: 20px; right: 20px; z-index: 10;
+    background: rgba(0,0,0,0.6); border: 2px solid #ff9800;
+    padding: 10px 25px; border-radius: 12px;
+    text-align: right; backdrop-filter: blur(5px);
+    box-shadow: 0 0 15px rgba(255, 152, 0, 0.2);
+}
+.status-label { color: #ddd; font-size: 12px; text-transform: uppercase; display: block; margin-bottom: 5px; }
+.status-value { color: #ffcc00; font-size: 16px; font-weight: 800; }
+
+.info-wrapper {
+    flex: 1.5; background: rgba(0,0,0,0.5); border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.1); padding: 15px;
+    display: flex; flex-direction: column;
+}
+.info-title { font-weight: bold; color: #ffcc00; border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 10px; }
+#infoContent { flex: 1; overflow-y: auto; font-family: 'Consolas', monospace; font-size: 13px; color: #ccc; min-height: 150px;}
+.step-item { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
+.step-item:hover { background: rgba(255,255,255,0.1); }
+.step-item.active { background: rgba(255, 204, 0, 0.15); border-left: 3px solid #ffcc00; color: #fff; }
+
+#graphStats { max-height: 50%; overflow-y: auto; margin-bottom: 10px; padding-right: 5px;}
+#graphStats::-webkit-scrollbar { width: 5px; }
+#graphStats::-webkit-scrollbar-thumb { background: #ffcc00; border-radius: 5px; }
+
+.stat-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px; color: #eee; }
+.stat-table th, .stat-table td { border: 1px solid #444; padding: 6px; text-align: center; }
+.stat-table th { background: rgba(255, 204, 0, 0.2); color: #ffcc00; }
+
+details { background: rgba(255,255,255,0.05); margin-bottom: 5px; border-radius: 5px; overflow: hidden; }
+details summary { padding: 8px; cursor: pointer; font-weight: bold; color: #ffcc00; outline: none; }
+details summary:hover { background: rgba(255,255,255,0.1); }
+details[open] summary { border-bottom: 1px solid #444; }
+.details-content { padding: 10px; }
+
+.home-btn { position: absolute; top: 20px; left: 30px; color: #ffcc00; text-decoration: none; border: 1px solid #ffcc00; padding: 5px 15px; border-radius: 5px; background: rgba(0,0,0,0.5); }
+#introPanel { display: none; }
+#pdfTextBox { background: rgba(0,0,0,0.4); border: 1px solid #ffcc00; border-radius: 12px; padding: 40px; color: #fff; height: 70vh; overflow-y: auto; font-size: 18px; line-height: 1.6; }
+#pdfTextBox h3 { color: #ffcc00; border-bottom: 2px solid #ffcc00; padding-bottom: 10px; margin-top: 30px; }
+
+.neon-text-gold { color: #ffcc00; font-weight: 700; text-transform: uppercase; text-decoration: underline; margin-bottom: 10px; display: block; text-shadow: 0 0 5px rgba(255, 204, 0, 0.6); }
+.instruction-text p { margin: 5px 0; font-size: 15px; line-height: 1.6; color: #e0e0e0; }
+.instruction-text b { color: #fff; }
+
+</style>
+</head>
+
+<body>
+<a href="/" class="home-btn">⬅ Trang Chủ</a>
+
+<div class="container">
+    <h1>Bellman-Ford Shortest Path</h1>
+
+    <div class="tab-buttons">
+        <button id="visBtn" class="tab-btn active" onclick="switchTab('vis')">Trực quan hoá</button>
+        <button id="introBtn" class="tab-btn" onclick="switchTab('intro')">Giới thiệu thuật toán</button>
+    </div>
+    
+
+    <div id="visPanel">
+        <div class="glass-box">
+            <span class="neon-text-gold">NGUYÊN LÝ BELLMAN-FORD:</span>
+            <div class="instruction-text">
+                <p><b>1. Khởi tạo:</b> Khoảng cách d[S] = 0, các đỉnh khác = ∞.</p>
+                <p><b>2. Relaxation (Nới lỏng):</b> Lặp lại (V-1) lần với tất cả các cạnh.</p>
+                <p><b>3. Quy tắc cập nhật:</b> Nếu d[u] + w < d[v] thì cập nhật d[v] = d[u] + w.</p>
+                <p><b>4. Chu trình âm:</b> Kiểm tra lần thứ V, nếu vẫn cập nhật được => Có chu trình âm.</p>
+            </div>
+
+            <div style="margin-bottom: 15px; color: #fff;">
+                <p class="section-label" style="color: #41ffd1; font-weight: bold; margin-bottom: 5px;">LOẠI ĐỒ THỊ:</p>
+                <div style="display: flex; gap: 20px;">
+                    <label style="cursor: pointer; display: flex; align-items: center;">
+                        <input type="radio" name="graphType" value="directed" checked style="width: 20px; height: 20px; margin-right: 8px;"> 
+                        Có hướng (Directed)
+                    </label>
+                    
+                    <label style="cursor: pointer; display: flex; align-items: center;">
+                        <input type="radio" name="graphType" value="undirected" style="width: 20px; height: 20px; margin-right: 8px;"> 
+                        Vô hướng (Undirected)
+                    </label>
+                </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2); margin: 15px 0;">
+
+            <div style="display: flex; gap: 20px;">
+                <div style="flex: 2;">
+                    <label class="section-label">NHẬP CÁC ĐỈNH (VD: S, A, B, C)</label>
+                    <input id="nodes" value="S, A, B, C, D, E" oninput="updateSelectors()">
+                </div>
+                <div style="flex: 4;">
+                    <label class="section-label">NHẬP CẠNH & TRỌNG SỐ (VD: S-A-4, S-E-8, E-D-1)</label>
+                    <input id="edges" value="S-A-10, S-E-8, E-D-1, D-A-4, D-C-1, A-C-2, C-B-2, B-A-1">
+                </div>
+            </div>
+            <div style="display: flex; gap: 20px; margin-top: 10px;">
+                <div style="flex: 2;">
+                    <label class="section-label">Chọn Đỉnh Nguồn (Start Node)</label>
+                    <select id="sourceNode"></select>
+                </div>
+                <div style="flex: 3; display: flex; align-items: flex-end;">
+                    <button class="action-btn" onclick="runAlgorithm()" style="width: 100%">CHẠY BELLMAN-FORD</button>
+                </div>
+            </div>
+
+            <div id="controlBar" class="control-bar">
+                <button class="ctrl-btn" onclick="prevStep()">❮ Lùi Bước</button>
+                <button class="ctrl-btn" id="btnPlay" onclick="togglePlay()">▶ Tự động chạy</button>
+                <button class="ctrl-btn" onclick="nextStep()">Tiếp Bước ❯</button>
+                <span id="stepDisplay" style="color: #ffcc00; font-weight: bold; margin-left: 10px;"></span>
+            </div>
+        </div>
+
+        <div class="viz-container">
+            <div class="graph-wrapper">
+                
+                <div class="status-box">
+                    <span class="status-label">Trạng thái</span>
+                    <span id="statusValue" class="status-value">Đang chờ...</span>
+                </div>
+
+                <svg id="graphArea" width="100%" height="100%"></svg>
+            </div>
+            
+            <div class="info-wrapper">
+                <div class="info-title">THÔNG SỐ ĐỒ THỊ</div>
+                <div id="graphStats">
+                    <p style="color:#aaa; font-style:italic;">Chạy thuật toán để xem chi tiết...</p>
+                </div>
+
+                <div id="pathResultArea" style="display:none; margin-top: 20px;">
+                    <div class="info-title" style="border-color: #00ff88; color: #00ff88;">KẾT QUẢ ĐƯỜNG ĐI</div>
+                    <div id="pathResultContent"></div>
+                </div>
+
+                <div class="info-title" style="margin-top: 20px;">NHẬT KÝ CHẠY</div>
+                <div id="infoContent" style="max-height: 200px; overflow-y: auto;">Sẵn sàng...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="introPanel">
+        <div class="glass-box">
+            <div id="pdfTextBox">Đang tải lý thuyết...</div>
+        </div>
+    </div>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+let gResult = null;
+let currentStepIdx = 0;
+let gEdges = [];
+let gNodes = [];
+let isPlaying = false;
+let autoPlayInterval = null;
+let simulation = null;
+let gIsUndirected = false; 
+
+function switchTab(tab) {
+    if (tab === 'vis') {
+        document.getElementById('visPanel').style.display = 'block';
+        document.getElementById('introPanel').style.display = 'none';
+        document.getElementById('visBtn').classList.add('active');
+        document.getElementById('introBtn').classList.remove('active');
+    } else {
+        document.getElementById('visPanel').style.display = 'none';
+        document.getElementById('introPanel').style.display = 'block';
+        document.getElementById('visBtn').classList.remove('active');
+        document.getElementById('introBtn').classList.add('active');
+        loadPdf();
+    }
+}
+
+function loadPdf() {
+    fetch("/api/bellman_ford_pdf/")
+        .then(r => r.json())
+        .then(data => document.getElementById("pdfTextBox").innerHTML = data.html)
+        .catch(e => document.getElementById("pdfTextBox").innerHTML = "Lỗi tải PDF: " + e);
+}
+
+function updateSelectors() {
+    const raw = document.getElementById("nodes").value;
+    const list = raw.split(",").map(x => x.trim()).filter(x => x !== "");
+    const src = document.getElementById("sourceNode");
+    const oldSrc = src.value;
+    src.innerHTML = "";
+    list.forEach(n => {
+        src.innerHTML += `<option value="${n}">${n}</option>`;
+    });
+    if(list.length > 0) {
+        src.value = list.includes(oldSrc) ? oldSrc : list[0];
+    }
+}
+updateSelectors();
+
+function updateBellmanInfo(data, isUndirected) {
+    try {
+        let pathsHtml = "";
+        if (data.has_negative_cycle) {
+            pathsHtml = `<div style="padding:10px; border:1px solid red; color:#ff9999; background:rgba(255,0,0,0.1); border-radius:5px;">
+                <b>PHÁT HIỆN CHU TRÌNH ÂM!</b><br>Không thể tìm đường đi ngắn nhất.
+            </div>`;
+        } else if (data.paths && Object.keys(data.paths).length > 0) {
+            pathsHtml = `<table style="width:100%; border-collapse:collapse; font-size:13px; margin-top:10px;">
+                <tr style="border-bottom:1px solid #555; color:#41ffd1;">
+                    <th style="text-align:left; padding:5px;">Đích</th>
+                    <th style="text-align:left; padding:5px;">Lộ trình</th>
+                    <th style="text-align:center; padding:5px;">Chi phí</th>
+                </tr>`;
+                
+            for (const [target, info] of Object.entries(data.paths)) {
+                const pathStr = info.path.join(" <span style='color:#666'>&rarr;</span> ");
+                pathsHtml += `<tr style="border-bottom:1px solid #444;">
+                    <td style="padding:6px; font-weight:bold; color:#ffcc00;">${target}</td>
+                    <td style="padding:6px;">${pathStr}</td>
+                    <td style="padding:6px; text-align:center; color:#00ff88; font-weight:bold;">${info.cost}</td>
+                </tr>`;
+            }
+            pathsHtml += `</table>`;
+        } else {
+            pathsHtml = `<p style="color:#aaa; font-style:italic;">Chưa có kết quả đường đi.</p>`;
+        }
+
+        const container = document.querySelector(".info-wrapper");
+        let resultDiv = document.getElementById("finalResultBox");
+        
+        if (!resultDiv) {
+            resultDiv = document.createElement("div");
+            resultDiv.id = "finalResultBox";
+            const logTitles = document.querySelectorAll(".info-title");
+            let targetTitle = null;
+            logTitles.forEach(el => {
+                if (el.textContent.includes("NHẬT KÝ")) targetTitle = el;
+            });
+
+            if(targetTitle) {
+                container.insertBefore(resultDiv, targetTitle);
+            } else {
+                container.prepend(resultDiv);
+            }
+        }
+
+        resultDiv.innerHTML = `
+            <div class="info-title" style="margin-top:20px; border-color:#00ff88; color:#00ff88;">KẾT QUẢ ĐƯỜNG ĐI</div>
+            ${pathsHtml}
+        `;
+        
+        renderGraphDetails(data.nodes, data.edges);
+    } catch (err) {
+        console.error("Lỗi hiển thị bảng kết quả:", err);
+    }
+}
+
+function renderGraphDetails(nodes, edges) {
+    const statsBox = document.getElementById("graphStats");
+    let inDegree = {}, outDegree = {}, adjList = {};
+    nodes.forEach(n => { inDegree[n] = 0; outDegree[n] = 0; adjList[n] = []; });
+
+    edges.forEach(e => {
+        if(outDegree[e.u] !== undefined) outDegree[e.u]++;
+        if(inDegree[e.v] !== undefined) inDegree[e.v]++;
+        if(adjList[e.u]) adjList[e.u].push(`${e.v}(${e.w})`);
+    });
+
+    let matrixHtml = `<table class="stat-table"><thead><tr><th></th>`;
+    nodes.forEach(n => matrixHtml += `<th>${n}</th>`);
+    matrixHtml += `</tr></thead><tbody>`;
+    nodes.forEach(u => {
+        matrixHtml += `<tr><th>${u}</th>`;
+        nodes.forEach(v => {
+            const edge = edges.find(e => e.u === u && e.v === v);
+            const val = edge ? edge.w : "∞";
+            const style = edge ? 'color: #ffcc00; font-weight:bold;' : 'color: #555;';
+            matrixHtml += `<td style="${style}">${val}</td>`;
+        });
+        matrixHtml += `</tr>`;
+    });
+    matrixHtml += `</tbody></table>`;
+
+    let adjMatrixHtml = `<table class="stat-table"><thead><tr><th>A</th>`;
+    nodes.forEach(n => adjMatrixHtml += `<th>${n}</th>`);
+    adjMatrixHtml += `</tr></thead><tbody>`;
+
+    nodes.forEach(u => {
+        adjMatrixHtml += `<tr><th>${u}</th>`;
+        nodes.forEach(v => {
+            const exists = edges.some(e => e.u === u && e.v === v);
+            const val = exists ? 1 : 0;
+            const style = exists ? 'color: #00ff88; font-weight:bold;' : 'color: #444;';
+            adjMatrixHtml += `<td style="${style}">${val}</td>`;
+        });
+        adjMatrixHtml += `</tr>`;
+    });
+    adjMatrixHtml += `</tbody></table>`;
+
+    let degreeHtml = `<table class="stat-table"><thead><tr><th>Đỉnh</th><th>Bậc Ra</th><th>Bậc Vào</th></tr></thead><tbody>`;
+    nodes.forEach(n => {
+        degreeHtml += `<tr><td><b>${n}</b></td><td style="color: #4ade80">${outDegree[n]}</td><td style="color: #f472b6">${inDegree[n]}</td></tr>`;
+    });
+    degreeHtml += `</tbody></table>`;
+    
+
+    statsBox.innerHTML = `
+        <details open>
+            <summary>1. Danh sách Đỉnh & Bậc</summary>
+            <div class="details-content">${degreeHtml}</div>
+        </details>
+        
+        <details>
+            <summary>2. Ma trận Trọng số</summary>
+            <div class="details-content" style="overflow-x:auto;">${matrixHtml}</div>
+        </details>
+
+        <!-- THÊM DÒNG NÀY ĐỂ HIỂN THỊ MA TRẬN KỀ -->
+        <details>
+            <summary>3. Ma trận Kề (0/1)</summary>
+            <div class="details-content" style="overflow-x:auto;">${adjMatrixHtml}</div>
+        </details>
+    `;
+}
+
+function runAlgorithm() {
+    const nodes = document.getElementById("nodes").value.split(",").map(n => n.trim()).filter(n => n !== "");
+    let edgesStr = document.getElementById("edges").value;
+    const source = document.getElementById("sourceNode").value;
+
+    const radioEl = document.querySelector('input[name="graphType"]:checked');
+    const graphMode = radioEl ? radioEl.value : "directed";
+    gIsUndirected = (graphMode === "undirected");
+
+    if (gIsUndirected) {
+        let rawEdges = edgesStr.split(/[,;\n]+/).map(e => e.trim()).filter(e => e !== "");
+        let newEdges = [];
+        let hasNegative = false;
+        
+        rawEdges.forEach(edgeStr => {
+            let parts = edgeStr.split("-");
+            if(parts.length >= 3) {
+                let u = parts[0].trim();
+                let v = parts[1].trim();
+                let wStr = parts.slice(2).join("-"); 
+                if(wStr === "" && parts.length === 4) wStr = "-" + parts[3];
+                if (parseInt(wStr) < 0) hasNegative = true;
+                newEdges.push(`${u}-${v}-${wStr}`);
+                newEdges.push(`${v}-${u}-${wStr}`);
+            }
+        });
+        
+        if (hasNegative) alert("⚠️ Cảnh báo: Đồ thị vô hướng có trọng số âm sẽ tạo thành chu trình âm!");
+        edgesStr = newEdges.join(",");
+    }
+
+    stopAutoPlay();
+    document.getElementById("infoContent").innerHTML = "Đang xử lý...";
+    document.getElementById("statusValue").innerText = "Đang chạy...";
+
+    fetch("/api/graph/bellman-ford/", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nodes, edges: edgesStr, source })
+    })
+    .then(r => r.json())
+    .then(data => {
+        console.log("Dữ liệu steps nhận được:", data.steps);
+        if (data.error) return alert("Lỗi: " + data.error);
+        
+        gResult = { steps: data.steps, has_cycle: data.has_negative_cycle };
+        gNodes = data.nodes;
+        gEdges = data.edges; 
+
+        initGraph(gNodes, gEdges, gIsUndirected);
+        
+        updateBellmanInfo(data, gIsUndirected); 
+        
+        renderLogs(gResult.steps);
+        
+        document.getElementById("controlBar").style.display = "flex";
+        currentStepIdx = 0;
+        updateVisuals();
+    })
+    .catch(e => {
+        console.error(e);
+        alert("Lỗi kết nối API: " + e);
+    });
+}
+
+function initGraph(nodes, edges, isUndirected) {
+    const svg = d3.select("#graphArea");
+    svg.selectAll("*").remove();
+    const width = document.querySelector(".graph-wrapper").clientWidth;
+    const height = 650;
+
+    const defs = svg.append("defs");
+    defs.append("marker").attr("id", "arrow").attr("viewBox", "0 0 10 10")
+        .attr("refX", 32).attr("refY", 5).attr("markerWidth", 5).attr("markerHeight", 5)
+        .attr("orient", "auto").append("path").attr("d", "M 0 0 L 10 5 L 0 10 z").attr("fill", "#666");
+
+    defs.append("marker").attr("id", "arrow-highlight").attr("viewBox", "0 0 10 10")
+        .attr("refX", 20).attr("refY", 5).attr("markerWidth", 6).attr("markerHeight", 6)
+        .attr("orient", "auto").append("path").attr("d", "M 0 0 L 10 5 L 0 10 z").attr("fill", "#ffcc00");
+
+    const filter = defs.append("filter").attr("id", "glow");
+    filter.append("feGaussianBlur").attr("stdDeviation", "2.5").attr("result", "coloredBlur");
+    const feMerge = filter.append("feMerge");
+    feMerge.append("feMergeNode").attr("in", "coloredBlur");
+    feMerge.append("feMergeNode").attr("in", "SourceGraphic");
+
+    const d3Nodes = nodes.map(n => ({ id: n }));
+    const d3Edges = edges.map(e => ({ source: e.u, target: e.v, w: e.w, id: `${e.u}-${e.v}` }));
+
+    simulation = d3.forceSimulation(d3Nodes)
+        .force("link", d3.forceLink(d3Edges).id(d => d.id).distance(220))
+        .force("charge", d3.forceManyBody().strength(-800))
+        .force("center", d3.forceCenter(width / 2, height / 2));
+
+    const linkGroup = svg.append("g").attr("class", "links");
+    const link = linkGroup.selectAll("line").data(d3Edges).enter().append("line")
+        .attr("id", d => `edge-${d.source.id || d.source}-${d.target.id || d.target}`)
+        .attr("stroke", "#444").attr("stroke-width", 2)
+        .attr("marker-end", isUndirected ? null : "url(#arrow)");
+
+    const labelGroup = svg.append("g").attr("class", "labels");
+    const linkLabel = labelGroup.selectAll("text").data(d3Edges).enter().append("text")
+        .text(d => d.w)
+        .attr("font-size", "14px").attr("fill", "#888").attr("font-weight", "bold")
+        .attr("text-anchor", "middle").attr("dy", -6)
+        .style("background", "#000");
+
+    const nodeGroup = svg.append("g").attr("class", "nodes");
+    const node = nodeGroup.selectAll("g").data(d3Nodes).enter().append("g")
+        .attr("id", d => `node-${d.id}`)
+        .call(d3.drag()
+            .on("start", (e, d) => { if(!e.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+            .on("drag", (e, d) => { d.fx = e.x; d.fy = e.y; })
+            .on("end", (e, d) => { if(!e.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }));
+
+    node.append("circle").attr("r", 24).attr("fill", "#0f172a")
+        .attr("stroke", "#ffcc00").attr("stroke-width", 2);
+
+    node.append("text").text(d => d.id).attr("dy", -5).attr("text-anchor", "middle")
+        .attr("fill", "white").attr("font-weight", "bold");
+
+    node.append("text").attr("class", "dist-text").text("∞").attr("dy", 15)
+        .attr("text-anchor", "middle").attr("fill", "#ffcc00").attr("font-size", "12px");
+
+    simulation.on("tick", () => {
+        link.attr("x1", d => d.source.x).attr("y1", d => d.source.y)
+            .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+        linkLabel.attr("x", d => (d.source.x + d.target.x) / 2)
+                 .attr("y", d => (d.source.y + d.target.y) / 2);
+        node.attr("transform", d => `translate(${d.x},${d.y})`);
+    });
+}
+
+function updateVisuals() {
+    if (!gResult) return;
+    const steps = gResult.steps;
+    const s = steps[currentStepIdx];
+
+    d3.selectAll("line")
+        .attr("stroke", "#444").attr("stroke-width", 2).style("filter", "none")
+        .attr("marker-end", gIsUndirected ? null : "url(#arrow)");
+        
+    d3.selectAll("circle").attr("fill", "#0f172a").attr("stroke", "#ffcc00");
+    d3.selectAll(".dist-text").attr("fill", "#ffcc00").style("font-weight", "normal");
+
+    let statusText = "Xử lý...";
+    let statusColor = "#ffcc00";
+
+    if (s.action === "init") statusText = "Khởi tạo";
+    else if (s.action === "check") statusText = "Kiểm tra cạnh";
+    else if (s.action === "relax") statusText = "Cập nhật Relax";
+    else if (s.action === "cycle_detected") { statusText = "CHU TRÌNH ÂM!"; statusColor = "red"; }
+    else if (s.action === "complete" || currentStepIdx === steps.length - 1) { 
+        statusText = "HOÀN TẤT"; 
+        statusColor = "#00ff88"; 
+    }
+    
+    document.getElementById("statusValue").innerText = statusText;
+    document.getElementById("statusValue").style.color = statusColor;
+    document.querySelector(".status-box").style.borderColor = statusColor;
+
+    if (s.highlight_edge) {
+        const u = s.highlight_edge.u;
+        const v = s.highlight_edge.v;
+        let edgeSel = d3.select(`#edge-${u}-${v}`);
+        
+        let color = "#ffff00"; 
+        if (s.action === "relax") color = "#00ff00"; 
+        if (s.action === "cycle_detected") color = "#ff0000"; 
+
+        edgeSel.transition().duration(200)
+            .attr("stroke", color).attr("stroke-width", 4)
+            .attr("marker-end", "url(#arrow-highlight)") 
+            .style("filter", "url(#glow)");
+    }
+
+    if (s.dist) {
+        for (const [nodeId, dist] of Object.entries(s.dist)) {
+            let txt = dist;
+            if (dist === Infinity || dist === null || dist === "inf") txt = "∞";
+            d3.select(`#node-${nodeId}`).select(".dist-text").text(txt);
+        }
+    }
+
+    if (s.updated_node) {
+        d3.select(`#node-${s.updated_node}`).select("circle")
+            .transition().duration(200).attr("fill", "#ff9800")
+            .transition().duration(500).attr("fill", "#0f172a");
+        d3.select(`#node-${s.updated_node}`).select(".dist-text")
+            .attr("fill", "#fff").style("font-weight", "bold");
+    }
+
+    document.getElementById("stepDisplay").innerText = `Bước ${currentStepIdx} / ${steps.length - 1}`;
+    document.querySelectorAll(".step-item").forEach((el, idx) => {
+        el.className = idx === currentStepIdx ? "step-item active" : "step-item";
+        if(idx === currentStepIdx) el.scrollIntoView({behavior: "smooth", block: "center"});
+    });
+    if (currentStepIdx >= steps.length - 1) stopAutoPlay();
+}
+
+function renderLogs(steps) {
+    const box = document.getElementById("infoContent");
+    box.innerHTML = "";
+    if (!steps || steps.length === 0) {
+        box.innerHTML = "<div>Không có dữ liệu log.</div>";
+        return;
+    }
+    steps.forEach((s, i) => {
+        const div = document.createElement("div");
+        div.className = "step-item";
+        let icon = '🔹';
+        if(s.action === 'relax') icon = '⚡';
+        if(s.action === 'cycle_detected') icon = '⛔';
+        if(s.action === 'complete') icon = '🏁';
+        
+        div.innerHTML = `<span style="color: #666; font-size: 11px;">#${i}</span> ${icon} ${s.message}`;
+        div.onclick = () => { currentStepIdx = i; updateVisuals(); };
+        box.appendChild(div);
+    });
+}
+
+
+function togglePlay() { isPlaying ? stopAutoPlay() : startAutoPlay(); }
+function startAutoPlay() {
+    if(!gResult) return;
+    if(currentStepIdx >= gResult.steps.length - 1) currentStepIdx = 0;
+    isPlaying = true;
+    const btn = document.getElementById("btnPlay");
+    btn.innerText = "⏸ Dừng";
+    btn.style.borderColor = "#ffcc00"; 
+    btn.style.background = "rgba(255, 204, 0, 0.2)";
+    autoPlayInterval = setInterval(() => {
+        if(currentStepIdx < gResult.steps.length - 1) { currentStepIdx++; updateVisuals(); }
+    }, 1000); 
+}
+function stopAutoPlay() {
+    isPlaying = false; clearInterval(autoPlayInterval);
+    const btn = document.getElementById("btnPlay");
+    btn.innerText = "▶ Tự động";
+    btn.style.borderColor = "#ffcc00";
+    btn.style.background = "rgba(0,0,0,0.3)";
+}
+function nextStep() { if (gResult && currentStepIdx < gResult.steps.length - 1) { currentStepIdx++; updateVisuals(); } }
+function prevStep() { if (gResult && currentStepIdx > 0) { currentStepIdx--; updateVisuals(); } }
+</script>
+</body>
+</html>

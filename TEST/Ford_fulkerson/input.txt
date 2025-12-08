@@ -1,0 +1,21 @@
+=== B. FORD–FULKERSON (MAX FLOW) ===
+Format: number_of_vertices, number_of_edges, then edges: u v capacity.
+
+--- Valid Case ---
+6 8
+0 1 10
+0 2 5
+1 2 15
+1 3 10
+2 4 10
+3 4 10
+3 5 10
+4 5 10
+
+--- Invalid Case ---
+6 5
+0 1 10
+1 2 5
+3 4 7
+4 5 8
+2 3 6

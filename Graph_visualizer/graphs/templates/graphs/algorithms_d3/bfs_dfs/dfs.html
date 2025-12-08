@@ -1,0 +1,830 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GRAPH VISUALIZE DFS ALGORITHMS</title>
+
+<style>
+#graphArea {
+    overflow: hidden !important;
+}
+
+.run-btn {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 14px 28px !important;
+    font-size: 18px !important;
+    border-radius: 12px !important;
+    background: linear-gradient(135deg, #00f58a, #41ffd1);
+    color: #000;
+    font-weight: 600;
+    box-shadow: 0 0 12px rgba(0,255,180,0.6);
+    cursor: pointer;
+    border: none;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.run-btn:hover {
+    transform: scale(1.02);
+    background: linear-gradient(135deg, #35ff9d, #7affde);
+    box-shadow: 0 0 18px rgba(0,255,200,0.9);
+}
+
+body {
+    background-image: url("{% static 'graphs/images/purple_wave.png' %}");
+    background-size: cover;
+    background-position: 80px;
+    background-attachment: fixed;
+    font-family: 'Inter', sans-serif;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+.container {
+    width: 85%;
+    margin: auto;
+    padding-top: 0px !important;
+}
+
+h1 {
+    font-size: 52px;
+    margin: 24px auto 32px;
+    padding: 14px 80px;
+    display: block;
+    width: fit-content;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-weight: 800;
+    background: linear-gradient(120deg, #1f2b7a, #3f51b5, #00e5ff);
+    border-radius: 999px;
+    box-shadow: 0 0 22px rgba(0, 229, 255, 0.55);
+    color: #ffffff;
+    -webkit-text-fill-color: #faf7f7;
+    text-shadow: 0 0 10px rgba(0,0,0,0.45);
+}
+
+h1::after { content: none; }
+
+.tab-buttons {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.tab-btn {
+    padding: 12px 26px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 10px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .25s;
+    background: rgba(255,255,255,0.2);
+    color: #ffffff;
+    backdrop-filter: blur(6px);
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, #00e28a, #3dffcb);
+    color: black;
+    transform: scale(1.06);
+}
+
+.tab-btn:hover { transform: scale(1.06); }
+
+.glass-box {
+    background: rgba(255,255,255,0.08);
+    padding: 25px;
+    border-radius: 14px;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.45);
+    margin-bottom: 40px;
+}
+
+.neon-title {
+    font-size: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, #00fff0, #41ffd1, #ffe66d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 10px rgba(0,255,200,0.8),
+                 0 0 18px rgba(0,200,255,0.7);
+    position: relative;
+    display: inline-block;
+}
+
+.neon-title::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 100%;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #00e28a, #41ffd1);
+    box-shadow: 0 0 10px rgba(0,255,200,0.8);
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    font-size: 17px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(180,150,255,0.45);
+    border-radius: 12px;
+    color: #e8ebff;
+    outline: none;
+    transition: .25s;
+    box-sizing: border-box;
+}
+
+input:focus {
+    border-color: #c9b2ff;
+    background: rgba(255,255,255,0.18);
+    box-shadow: 0 0 15px #cdb3ff;
+}
+
+svg {
+    width: auto;
+    height: auto;
+    min-width: 100%;
+    min-height: 600px;
+    overflow: visible !important;
+    border-radius: 16px;
+    background: rgba(0,0,0,0.20);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.node { cursor: grab; transition: fill 0.5s ease; }
+.node:active { cursor: grabbing; }
+
+.highlight-node {
+    fill: #f7d206 !important;
+    filter: drop-shadow(0 0 15px #f7d206);
+}
+
+.edge { stroke: #eaee0d; stroke-width: 4; }
+.highlight-edge { stroke: #ff4704 !important; stroke-width: 7 !important; }
+
+.pdf-wrapper {
+    background: rgba(255,255,255,0.06);
+    border-radius: 18px;
+    padding: 35px;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 8px 35px rgba(0,0,0,0.45);
+    backdrop-filter: blur(14px);
+    margin-top: 25px;
+}
+
+.pdf-header {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 25px;
+    color: #dff3ff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pdf-header i {
+    font-size: 30px;
+    color: #79d7ff;
+    filter: drop-shadow(0 0 6px #79d7ff);
+}
+
+#pdfTextBox {
+    white-space: pre-wrap;
+    font-size: 18px;
+    line-height: 1.85;
+    padding: 25px;
+    color: #ffffff;
+    background: rgba(0,0,0,0.28);
+    border-radius: 14px;
+    border-left: 4px solid #70d6ff;
+    box-shadow: inset 0 0 22px rgba(0,0,0,0.4);
+}
+
+#infoPanel {
+    font-size: 16px !important;
+    line-height: 1.55 !important;
+    color: #e9ecff !important;
+}
+
+#infoPanel h3 {
+    font-size: 18px !important;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.home-btn { 
+    position: absolute; 
+    top: 20px; 
+    left: 30px; 
+    color: #41ffd1; 
+    text-decoration: none; 
+    border: 1px solid #41ffd1; 
+    padding: 5px 15px; 
+    border-radius: 5px; 
+    background: rgba(0,0,0,0.5); 
+}
+</style>
+</head>
+
+<body>
+<a href="/" class="home-btn">⬅ Trang Chủ</a>
+<div class="container">
+
+    <h1>GRAPH VISUALIZE DFS ALGORITHM</h1>
+
+    <div class="tab-buttons">
+        <button id="visualBtn" class="tab-btn active" onclick="showVisual()">Trực quan hoá</button>
+        <button id="introBtn" class="tab-btn" onclick="showIntro()">Giới thiệu thuật toán</button>
+    </div>
+
+    <div id="visualPanel">
+
+        <div class="glass-box" style="margin-top: 5px;">
+            <h3 class="neon-title">NGUYÊN LÝ HOẠT ĐỘNG CỦA DFS:</h3>
+            <h3>
+                <p><b>1. Khởi tạo:</b> Bắt đầu từ một đỉnh xuất phát (Start Node), đánh dấu đã thăm và đẩy vào ngăn xếp (Stack).</p>
+                <p><b>2. Lặp:</b> Khi ngăn xếp không rỗng:</p>
+                <p><b>&nbsp;&nbsp;-</b> Lấy đỉnh u ở trên cùng ngăn xếp.</p>
+                <p><b>&nbsp;&nbsp;-</b> Tìm đỉnh v kề với u mà chưa được thăm.</p>
+                <p><b>&nbsp;&nbsp;-</b> Nếu có v: Đánh dấu v đã thăm, đẩy v vào ngăn xếp.</p>
+                <p><b>&nbsp;&nbsp;-</b> Nếu không còn v nào: Loại bỏ u khỏi ngăn xếp (Backtrack/Quay lui).</p>
+                <p><b>3. Kết thúc:</b> Khi ngăn xếp rỗng, quá trình duyệt hoàn tất.</p>
+            </h3>
+
+            <h3 class="neon-title">CHỌN CHẾ ĐỘ ĐỒ THỊ</h3>
+            <div style="margin: 20px 0; text-align:center;">
+                <button id="btn-undirected" class="tab-btn">Đồ Thị Vô Hướng</button>
+                <button id="btn-directed" class="tab-btn active">Đồ Thị Có Hướng</button>
+            </div>
+
+            <p class="neon-title"><b>NHẬP CÁC ĐỈNH CHO ĐỒ THỊ:</b> (VD: A,B,C,D,E)</p>
+            <input id="nodes" placeholder="A,B,C,D,E,F" value="A, B, C, D, E, F">
+
+            <p class="neon-title"><b>NHẬP CÁC CẠNH NỐI:</b> (VD: A-B, B-C)</p>
+            <input id="edges" placeholder="A-B, B-C, C-D" value="A-B, A-C, B-D, B-E, C-F, E-F">
+
+            <div style="margin-top: 20px;">
+                <p class="neon-title"><b>ĐỈNH BẮT ĐẦU:</b></p>
+                <input id="startNode" placeholder="VD: A" value="A">
+            </div>
+
+            <div style="margin-top: 30px;">
+                 <button class="run-btn" onclick="runDFS()">CHẠY THUẬT TOÁN DFS</button>
+            </div>
+
+            <button class="run-btn btn-blue" onclick="handleAction('BIPARTITE')">
+                KIỂM TRA 2 PHÍA
+            </button>
+
+        </div>
+
+        <div class="glass-box" style="
+            display: flex;
+            gap: 25px;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 25px;
+        ">
+
+            <div style="
+                flex: 2.3;
+                height: 800px;
+                padding: 0;
+                overflow: hidden;
+                border-radius: 16px;
+                background: rgba(0,0,0,0.20);
+                border: 1px solid rgba(255,255,255,0.12);
+                position: relative;
+            ">
+                <svg id="graphArea" style="width: 100%; height: 100%;"></svg>
+            </div>
+
+            <div id="infoPanel" style="
+                flex: 1;
+                padding: 22px;
+                height: 800px;
+                overflow-y: auto;
+                border-radius: 14px;
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.15);
+            ">
+                <h3 style="margin-bottom: 10px;">THÔNG TIN CHI TIẾT</h3>
+                <div id="infoContent">
+                    <p style="opacity: 0.7; font-style: italic;">Nhấn "Chạy thuật toán" để xem kết quả...</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="introPanel" style="display:none;">
+        <div class="glass-box">
+            <div class="pdf-wrapper">
+                <div class="pdf-header">
+                    <i></i> Giới thiệu thuật toán DFS
+                </div>
+                <div id="pdfTextBox">Đang tải nội dung PDF...</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+    window.graphType = "directed"; 
+    
+    document.getElementById("btn-undirected").onclick = function () {
+        window.graphType = "undirected";
+        this.classList.add("active");
+        document.getElementById("btn-directed").classList.remove("active");
+    };
+
+    document.getElementById("btn-directed").onclick = function () {
+        window.graphType = "directed";
+        this.classList.add("active");
+        document.getElementById("btn-undirected").classList.remove("active");
+    };
+
+    function showVisual() {
+        document.getElementById("visualPanel").style.display = "block";
+        document.getElementById("introPanel").style.display = "none";
+        document.getElementById("visualBtn").classList.add("active");
+        document.getElementById("introBtn").classList.remove("active");
+    }
+
+    function showIntro() {
+        document.getElementById("visualPanel").style.display = "none";
+        document.getElementById("introPanel").style.display = "block";
+        document.getElementById("visualBtn").classList.remove("active");
+        document.getElementById("introBtn").classList.add("active");
+        loadPdfText();
+    }
+
+    function loadPdfText() {
+        fetch("/api/dfs/pdf/")
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("pdfTextBox").innerHTML =
+                    data.html ? data.html : `<pre>${data.text || "Không có nội dung mô tả."}</pre>`;
+            })
+            .catch(() => {
+                document.getElementById("pdfTextBox").textContent = "Lỗi tải tài liệu giới thiệu!";
+            });
+    }
+
+    function runDFS() {
+        const nodes = document.getElementById("nodes").value.split(",").map(s => s.trim()).filter(s => s);
+        const edges = document.getElementById("edges").value.split(",").map(s => s.trim()).filter(s => s);
+        const startNode = document.getElementById("startNode").value.trim();
+
+        if (!startNode) {
+            alert("Vui lòng nhập đỉnh bắt đầu!");
+            return;
+        }
+        if (!nodes.includes(startNode)) {
+            alert("Đỉnh bắt đầu không nằm trong danh sách đỉnh!");
+            return;
+        }
+
+        fetch("/api/graph/dfs/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                nodes: nodes,
+                edges: edges,
+                startNode: startNode,
+                mode: window.graphType 
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            drawGraph(data.nodes, data.edges);
+            animateDFS(data.result);
+            updateInfo({
+                mode: window.graphType,
+                ...data.analysis,
+                dfs_path: data.result.path,
+                dfs_steps: data.result.steps,
+
+                raw_nodes: data.nodes, 
+                raw_edges: data.edges  
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Lỗi kết nối tới Server!");
+        });
+    }
+
+    function drawGraph(nodes, edges) {
+        d3.select("#graphArea").selectAll("*").remove();
+
+        const svgElement = document.getElementById("graphArea");
+        const width = svgElement.clientWidth;
+        const height = svgElement.clientHeight;
+        const svg = d3.select("#graphArea").attr("viewBox", `0 0 ${width} ${height}`);
+
+        const d3Nodes = nodes.map(n => ({ id: n.id }));
+        const d3Edges = edges.map(e => ({ 
+            source: e.source, 
+            target: e.target, 
+            id: `${e.source}-${e.target}` 
+        }));
+
+        const nodeRadius = 22; 
+
+        const simulation = d3.forceSimulation(d3Nodes)
+            .force("link", d3.forceLink(d3Edges).id(d => d.id).distance(200))
+            .force("charge", d3.forceManyBody().strength(-500))
+            .force("center", d3.forceCenter(width / 2, height / 2));
+
+        svg.append("defs").selectAll("marker")
+            .data(["arrow"])
+            .enter().append("marker")
+            .attr("id", "arrow")
+            .attr("viewBox", "0 -5 10 10")
+            .attr("refX", 10)
+            .attr("refY", 0)
+            .attr("markerWidth", 6)
+            .attr("markerHeight", 6)
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", "M0,-5L10,0L0,5")
+            .attr("fill", "#00ff88");
+
+        const link = svg.append("g")
+            .selectAll("line")
+            .data(d3Edges)
+            .enter().append("line")
+            .attr("class", "edge")
+            .attr("stroke", "#eaee0d")
+            .attr("stroke-width", 2)
+            .attr("marker-end", window.graphType === "directed" ? "url(#arrow)" : null);
+
+        const node = svg.append("g")
+            .selectAll("circle")
+            .data(d3Nodes)
+            .enter().append("circle")
+            .attr("class", "node")
+            .attr("r", nodeRadius - 2)
+            .attr("fill", "#555")
+            .attr("stroke", "#fff")
+            .attr("stroke-width", 2)
+            .call(d3.drag()
+                .on("start", (event, d) => {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x; d.fy = d.y;
+                })
+                .on("drag", (event, d) => {
+                    d.fx = event.x; d.fy = event.y;
+                })
+                .on("end", (event, d) => {
+                    if (!event.active) simulation.alphaTarget(0);
+                    d.fx = null; d.fy = null;
+                }));
+
+        const label = svg.append("g")
+            .selectAll("text")
+            .data(d3Nodes)
+            .enter().append("text")
+            .text(d => d.id)
+            .attr("fill", "#ffffff")
+            .attr("font-size", "16px")
+            .attr("dy", 5)
+            .attr("text-anchor", "middle")
+            .style("pointer-events", "none")
+            .style("font-weight", "bold");
+
+        simulation.on("tick", () => {
+            link
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => {
+                    const dx = d.target.x - d.source.x;
+                    const dy = d.target.y - d.source.y;
+                    const dr = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dr > 0) {
+                        const offsetX = (dx * (nodeRadius + 3)) / dr; 
+                        return d.target.x - offsetX;
+                    }
+                    return d.target.x;
+                })
+                .attr("y2", d => {
+                    const dx = d.target.x - d.source.x;
+                    const dy = d.target.y - d.source.y;
+                    const dr = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dr > 0) {
+                        const offsetY = (dy * (nodeRadius + 3)) / dr;
+                        return d.target.y - offsetY;
+                    }
+                    return d.target.y;
+                });
+
+            node.attr("cx", d => d.x).attr("cy", d => d.y);
+            label.attr("x", d => d.x).attr("y", d => d.y);
+        });
+    }
+    function animateDFS(result) {
+        if (!result || !result.steps) return;
+        
+        const steps = result.steps;
+        const nodes = d3.selectAll(".node");
+        let stepIndex = 0;
+        const DELAY = 1000;
+
+        function showStep() {
+            if (stepIndex >= steps.length) return;
+            
+            const s = steps[stepIndex];
+            
+            nodes.transition().duration(500)
+                .attr("fill", d => {
+                    if (d.id === s.current_node) return "#ff9100";
+                    if (s.visited.includes(d.id)) return "#00e28a";
+                    return "#555";
+                })
+                .attr("r", d => (d.id === s.current_node) ? 28 : 20)
+                .style("filter", d => (d.id === s.current_node) ? "drop-shadow(0 0 10px #ff9100)" : "none");
+
+            stepIndex++;
+            setTimeout(showStep, DELAY);
+        }
+
+        showStep();
+    }
+
+    function updateInfo(info) {
+        const box = document.getElementById("infoContent");
+        
+        const nodeIds = (info.raw_nodes || []).map(n => n.id);
+        const edges = info.raw_edges || [];
+        const isDirected = (info.mode === "directed");
+
+        const nodesStr = nodeIds.join(", ");
+        const hasBiInfo = typeof info.is_bipartite === "boolean";
+        const biColor = hasBiInfo
+            ? (info.is_bipartite ? "#00ff99" : "#ff6666")
+            : "#cccccc";
+
+        const biText = !hasBiInfo
+            ? "Chưa kiểm tra"
+            : (info.is_bipartite ? "Đồ thị HAI PHÍA (bipartite)" : "KHÔNG phải đồ thị hai phía");
+
+        let biSetsHtml = "";
+        if (info.bipartite_sets && Array.isArray(info.bipartite_sets) && info.bipartite_sets.length === 2) {
+            const [set1, set2] = info.bipartite_sets;
+            biSetsHtml = `
+                <p style="margin-top:4px;">
+                    <b>Tập đỉnh 1:</b> { ${set1.join(", ")} }<br>
+                    <b>Tập đỉnh 2:</b> { ${set2.join(", ")} }
+                </p>
+            `;
+        }
+
+        const biMessageHtml = info.bipartite_message
+            ? `<p style="font-size:13px; opacity:0.85;">Ghi chú: ${info.bipartite_message}</p>`
+            : "";
+
+        const degrees = {};
+        nodeIds.forEach(id => {
+            degrees[id] = { in: 0, out: 0, total: 0 };
+        });
+
+        edges.forEach(e => {
+            const u = (typeof e.source === 'object') ? e.source.id : e.source;
+            const v = (typeof e.target === 'object') ? e.target.id : e.target;
+
+            if (degrees[u] && degrees[v]) {
+                if (isDirected) {
+                    degrees[u].out++;
+                    degrees[v].in++;
+                } else {
+                    degrees[u].total++;
+                    degrees[v].total++;
+                }
+            }
+        });
+
+        let degreeRows = "";
+        nodeIds.forEach(id => {
+            const d = degrees[id];
+            if (isDirected) {
+                degreeRows += `<tr><td>${id}</td><td>${d.in}</td><td>${d.out}</td></tr>`;
+            } else {
+                degreeRows += `<tr><td>${id}</td><td>${d.total}</td></tr>`;
+            }
+        });
+
+        const degreeHeader = isDirected 
+            ? "<th>Đỉnh</th><th>Vào (In)</th><th>Ra (Out)</th>"
+            : "<th>Đỉnh</th><th>Bậc (Deg)</th>";
+        
+        const degreeTable = `
+            <table class="info-table">
+                <tr class="header-row">${degreeHeader}</tr>
+                ${degreeRows}
+            </table>
+        `;
+
+        const n = nodeIds.length;
+        const matrix = Array(n).fill(null).map(() => Array(n).fill(0));
+        const indexMap = {};
+        nodeIds.forEach((id, i) => indexMap[id] = i);
+
+        edges.forEach(e => {
+            const u = (typeof e.source === 'object') ? e.source.id : e.source;
+            const v = (typeof e.target === 'object') ? e.target.id : e.target;
+            
+            const uIdx = indexMap[u];
+            const vIdx = indexMap[v];
+
+            if (uIdx !== undefined && vIdx !== undefined) {
+                matrix[uIdx][vIdx] = 1;
+                if (!isDirected) {
+                    matrix[vIdx][uIdx] = 1;
+                }
+            }
+        });
+
+        let matrixHeader = "<th></th>" + nodeIds.map(id => `<th>${id}</th>`).join("");
+        let matrixRows = "";
+        for (let i = 0; i < n; i++) {
+            let rowCells = matrix[i].map(val => `<td style="${val===1 ? 'color:#00e28a; font-weight:bold;' : 'color:#555;'}">${val}</td>`).join("");
+            matrixRows += `<tr><td class="header-col">${nodeIds[i]}</td>${rowCells}</tr>`;
+        }
+
+        const matrixTable = `
+            <table class="info-table matrix-table">
+                <tr class="header-row">${matrixHeader}</tr>
+                ${matrixRows}
+            </table>
+        `;
+
+        let adjRows = "";
+        const adjList = info.adj_list || {};
+        for (const [node, neighbors] of Object.entries(adjList)) {
+            adjRows += `<tr><td style="font-weight:bold; color:#ff9100;">${node}</td><td>[ ${neighbors.join(", ")} ]</td></tr>`;
+        }
+        const adjTable = `<table class="info-table"><tr class="header-row"><th>Đỉnh</th><th>Kề</th></tr>${adjRows}</table>`;
+
+        let stepsRows = "";
+        (info.dfs_steps || []).forEach((s, i) => {
+            const stackStr = `[${s.stack.join(", ")}]`;
+            stepsRows += `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding:4px;">${i + 1}</td>
+                    <td style="color:#ff9100;">${s.current_node || "-"}</td>
+                    <td style="font-family:monospace; font-size:13px; color:#aaa;">${stackStr}</td>
+                </tr>
+            `;
+        });
+        const stepsTable = `
+            <table class="info-table">
+                <tr class="header-row"><th>B</th><th>Xét</th><th>Stack</th></tr>
+                ${stepsRows}
+            </table>
+        `;
+
+        box.innerHTML = `
+            <style>
+                .info-table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: center; margin-bottom: 15px; }
+                .info-table th, .info-table td { border: 1px solid rgba(255,255,255,0.1); padding: 6px 4px; }
+                .header-row { background: rgba(0, 226, 138, 0.15); color: #00e28a; }
+                .header-col { font-weight: bold; color: #70d6ff; background: rgba(255,255,255,0.05); }
+                .matrix-table td { width: 25px; height: 25px; }
+                h4 { margin: 15px 0 5px 0; color: #70d6ff; font-size: 16px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 3px; display: inline-block; }
+            </style>
+
+            <p><b>Chế độ:</b> ${(info.mode || "").toUpperCase()}</p>
+
+            <!-- ===== KẾT LUẬN 2 PHÍA Ở ĐẦU ===== -->
+            <p>
+                <b>Đồ thị hai phía?</b>
+                <span style="color:${biColor}; font-weight:600; margin-left:4px;">
+                    ${biText}
+                </span>
+            </p>
+            ${biSetsHtml}
+            ${biMessageHtml}
+            <!-- ================================= -->
+            
+            <h4>1. Danh Sách Đỉnh</h4>
+            <p style="background:rgba(255,255,255,0.1); padding:8px; border-radius:6px;">{ ${nodesStr} }</p>
+
+            <h4>2. Bậc Của Đỉnh</h4>
+            ${degreeTable}
+
+            <h4>3. Ma Trận Kề</h4>
+            <div style="overflow-x:auto;">${matrixTable}</div>
+
+            <h4>4. Danh Sách Kề</h4>
+            ${adjTable}
+
+            <h4>5. Đường Đi DFS</h4>
+            <div style="background: rgba(0, 226, 138, 0.1); padding: 10px; border-radius: 8px; border: 1px solid #00e28a; margin-bottom: 15px;">
+                <span style="color: white; font-weight:bold; font-size: 16px;">${(info.dfs_path || []).join(" &rarr; ")}</span>
+            </div>
+
+            <h4>6. Chi Tiết Các Bước</h4>
+            <div style="max-height: 300px; overflow-y: auto;">${stepsTable}</div>
+        `;
+    }
+
+function handleAction(action) {
+    const nodes = document.getElementById("nodes").value
+        .split(",").map(s => s.trim()).filter(Boolean);
+    const edges = document.getElementById("edges").value
+        .split(",").map(s => s.trim()).filter(Boolean);
+    const startNode = document.getElementById("startNode").value.trim();
+
+    if (!startNode) {
+        alert("Vui lòng nhập đỉnh bắt đầu!");
+        return;
+    }
+    if (!nodes.includes(startNode)) {
+        alert("Đỉnh bắt đầu không nằm trong danh sách đỉnh!");
+        return;
+    }
+
+    fetch("/api/graph/dfs/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            action: action,
+            nodes: nodes,
+            edges: edges,
+            startNode: startNode,
+            endNode: null,
+            mode: window.graphType
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+
+        console.log("DFS / BIPARTITE response = ", data);
+
+        drawGraph(data.nodes, data.edges);
+
+        if (action === "DFS" || action === "SHORTEST_PATH") {
+            animateDFS(data.result);
+        }
+
+        const result = data.result || {};
+
+        const isBi = (typeof result.is_bipartite !== "undefined")
+            ? result.is_bipartite
+            : null;
+
+        const biSets = result.partition || result.color_sets || null;
+        const biMsg  = result.message || "";
+
+        updateInfo({
+            mode: window.graphType,
+            ...data.analysis,
+
+            dfs_path:  result.path  || [],
+            dfs_steps: result.steps || [],
+
+            is_bipartite:      isBi,
+            bipartite_sets:    biSets,
+            bipartite_message: biMsg,
+
+            raw_nodes: data.nodes,
+            raw_edges: data.edges
+        });
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Lỗi kết nối tới Server!");
+    });
+}
+
+
+</script>
+
+</body>
+</html>

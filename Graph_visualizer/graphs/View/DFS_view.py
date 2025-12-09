@@ -47,8 +47,6 @@ def get_dfs_data(request):
 
         if action == "DFS":
             result = algo.run_dfs()
-        elif action == "SHORTEST_PATH":
-            result = algo.get_shortest_path()
         elif action == "BIPARTITE":
             result = algo.check_bipartite()
         else:

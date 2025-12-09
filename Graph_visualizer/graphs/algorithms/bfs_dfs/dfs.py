@@ -104,65 +104,39 @@ class DFSAlgorithm:
             "path": visited,
             "steps": steps,
         }
-
-
-    def get_shortest_path(self):
-        if self.start_node is None or self.end_node is None:
-            return {"error": "Cần nhập cả đỉnh bắt đầu và kết thúc để tìm đường đi ngắn nhất."}
-
-        if self.start_node not in self.G.nodes or self.end_node not in self.G.nodes:
-            return {"error": "Đỉnh bắt đầu hoặc kết thúc không tồn tại trong đồ thị."}
-
-        try:
-            path = nx.shortest_path(self.G, source=self.start_node, target=self.end_node)
-        except nx.NetworkXNoPath:
-            return {"error": f"Không tồn tại đường đi từ {self.start_node} đến {self.end_node}."}
-
-        steps = []
-        visited = []
-        for i, node in enumerate(path):
-            visited.append(node)
-            steps.append({
-                "description": f"Bước {i}: Đi tới {node}",
-                "current_node": node,
-                "stack": [],
-                "visited": list(visited),
-            })
-
-        return {
-            "path": path,
-            "steps": steps,
-        }
-
     def check_bipartite(self):
-        if self.G.number_of_nodes() == 0:
-            return {
-                "error": "Đồ thị rỗng, không thể kiểm tra hai phía."
-            }
+        G_check = self.G.to_undirected()
+        
+        colors = {}
+        is_bipartite = True
+        conflict_edge = None
 
-        if self.G.is_directed():
-            H = self.G.to_undirected()
-        else:
-            H = self.G
-
-        is_bi = nx.is_bipartite(H)
-        if not is_bi:
-            return {
-                "is_bipartite": False,
-                "partition": [],
-                "message": "Đồ thị chứa chu trình lẻ nên KHÔNG phải đồ thị hai phía.",
-            }
-
-        try:
-            color = nx.algorithms.bipartite.color(H)
-            set1 = [n for n, c in color.items() if c == 0]
-            set2 = [n for n, c in color.items() if c == 1]
-        except Exception:
-            set1 = list(H.nodes())
-            set2 = []
+        for node in G_check.nodes():
+            if node not in colors:
+                queue = [node]
+                colors[node] = 0 
+                
+                while queue:
+                    u = queue.pop(0)
+                    current_color = colors[u]
+                    
+                    for v in G_check.neighbors(u):
+                        if v not in colors:
+                            colors[v] = 1 - current_color
+                            queue.append(v)
+                        elif colors[v] == current_color:
+                            is_bipartite = False
+                            conflict_edge = {"source": u, "target": v}
+                            break
+                    if not is_bipartite: break
+            if not is_bipartite: break
+            
+        sets = {"0": [], "1": []}
+        for n, c in colors.items():
+            sets[str(c)].append(n)
 
         return {
-            "is_bipartite": True,
-            "partition": [set1, set2],
-            "message": "Đây là đồ thị HAI PHÍA (bipartite) – không tồn tại chu trình lẻ.",
+            "is_bipartite": is_bipartite,
+            "sets": sets,
+            "conflict_edge": conflict_edge
         }

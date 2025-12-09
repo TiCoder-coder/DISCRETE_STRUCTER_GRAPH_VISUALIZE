@@ -1,101 +1,80 @@
-Thuật Toán Bruteforce
+FILE INPUT TEST: TÌM ĐƯỜNG ĐI NGẮN NHẤT (SUCCESS & FAIL CASES)
 
-Trường hợp có đường đi
 
-Trường hợp 1 : 6 đỉnh
+1. TRƯỜNG HỢP 4 ĐỈNH
 
-1. Vô hướng
+CASE 1.1: THÀNH CÔNG
+NODES:
+A, B, C, D
+EDGES:
+A-B, B-D, A-C, C-D
+START: A
+END: D
 
-Đỉnh : A,B,C,D,E,F
+CASE 1.2: THẤT BẠI
+NODES:
+A, B, C, D
+EDGES:
+A-B, C-D
+START: A
+END: D
 
-Cạnh và Trọng số : A-B-6, A-C-7, B-C-2, B-D-19, C-D-20,C-E-2, D-E-3, E-F-10, D-F-4, B-F-12
 
-2. Có Hướng
+2. TRƯỜNG HỢP 6 ĐỈNH
 
-Đỉnh : A,B,C,D,E,F
+ 2.1: THÀNH CÔNG 
+NODES:
+1, 2, 3, 4, 5, 6
+EDGES:
+1-2, 2-3, 3-4, 4-5, 5-6, 1-6
+START: 1
+END: 6
 
-Cạnh và Trọng số : A-B-4, A-C-7, B-D-5, B-E-3, C-D-2, C-F-8, D-E-6, E-F-4, F-D-7, E-C-5
+CASE 2.2: THẤT BẠI
+NODES:
+1, 2, 3, 4, 5, 6
+EDGES:
+1-2, 2-3, 3-4, 4-5
+START: 1
+END: 6
 
-Trường hợp 2 : 8 đỉnh
 
-1. Vô hướng
+3. TRƯỜNG HỢP 8 ĐỈNH
 
-Đỉnh : A, B, C, D, E, F, G, H.
+CASE 3.1: THÀNH CÔNG
+NODES:
+A, B, C, D, E, F, G, H
+EDGES:
+A-B, B-C, C-D, D-H, A-E, E-F, F-H
+START: A
+END: H
 
-Cạnh và Trọng số : A-B-4, A-C-6, A-D-9, B-E-5, B-F-7, C-D-3, C-G-8, D-H-4, E-G-6, F-H-2, G-H-5, H-C-7
+CASE 3.2: THẤT BẠI
+NODES:
+A, B, C, D, E, F, G, H
+EDGES:
+A-B, B-C, C-D, A-E, E-F, G-H
+START: A
+END: H
 
-2. Có Hướng
 
-Đỉnh : A, B, C, D, E, F, G, H.
 
-Cạnh và Trọng số : A-B-4, A-C-6, A-D-9, B-E-5, B-F-7, C-D-3, C-G-8, D-H-4, E-G-6, F-H-2, G-H-5, H-C-7
+4. TRƯỜNG HỢP 10 ĐỈNH
 
-Trường hợp 3 : 10 đỉnh
+CASE 4.1: THÀNH CÔNG
+NODES:
+0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+EDGES:
+0-1, 1-2, 2-3, 3-4, 4-9, 0-5, 5-6, 6-7, 7-8, 8-9, 2-7, 1-6
+START: 0
+END: 9
 
-1. Vô hướng
+CASE 4.2: THẤT BẠI
+NODES:
+0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+EDGES:
+0-1, 1-2, 2-3, 3-4, 4-0, 5-6, 6-7, 7-8, 8-9, 9-5
+START: 0
+END: 9
 
-Đỉnh : A, B, C, D, E, F, G, H, I, J
-
-Cạnh và Trọng số : A-B-5, A-C-3, A-D-9, B-E-4, B-F-7, C-F-2, C-G-6, D-G-3, E-H-5, F-H-1, G-I-4, H-I-8, I-J-2, F-J-9, E-G-7
-
-2. Có Hướng
-
-Đỉnh : A, B, C, D, E, F, G, H, I, J
-
-Cạnh và Trọng số : A-B-5, A-C-3, A-D-9, B-E-4, B-F-7, C-F-2, C-G-6, D-G-3, E-H-5, F-H-1, G-I-4, H-I-8, I-J-2, F-J-9, E-G-7
-
-Trường hợp không có đường đi
-
-Trường hợp 1 : 6 đỉnh
-
-1. Vô hướng
-
-Đỉnh : A,B,C,D,E,F
-
-Cạnh và Trọng số : A-B-4, B-C-3, D-E-5, E-F-2
-
-Không có đường đi giữa A/B/C và D/E/F
-
-2. Có hướng
-
-Đỉnh : A,B,C,D,E,F
-
-Cạnh và Trọng số : A-B-4, B-C-3, D-E-5, F-E-2
-
-Không có đường đi giữa (A,B,C) và (D,F,E)
-
-Trường hợp 2 : 8 đỉnh
-
-1. Vô hướng
-
-Đỉnh : A,B,C,D,E,F,G,H
-
-Cạnh và Trọng số : A-B-4, B-C-3, D-E-5, F-G-2, G-H-6
-
-Không có đường đi giữa (A, B, C) và (D, E) và (F, G, H).
-
-2. Có hướng
-
-Đỉnh : A,B,C,D,E,F,G,H
-
-Cạnh và Trọng số : A-B-3, B-C-4, C-D-2, E-F-6, F-G-5, G-H-7
-
-Không có đường đi (A,B,C,D) và (E,F,G,H)
-
-Trường hợp 3 : 10 đỉnh
-
-1. Vô hướng
-
-Đỉnh : A, B, C, D, E, F, G, H, I, J
-
-Cạnh và Trọng số : A-B-3, B-C-4, D-E-6, E-F-2, G-H-5, I-J-7
-
-Không có đường đi (A,B,C) , (E,F) ,(G,H) ,(I,J)
-
-2. Có hướng
-
-Đỉnh : A, B, C, D, E, F, G, H, I, J
-
-Cạnh và Trọng số : A-B-4, B-C-1, D-E-3, E-F-6, G-H-2, H-I-5, I-J-7
-
-Không có đường đi (A,B,C) ,(D,E,F) ,(G,H,I,J) 
+Đang hiển thị 278541322155860934.

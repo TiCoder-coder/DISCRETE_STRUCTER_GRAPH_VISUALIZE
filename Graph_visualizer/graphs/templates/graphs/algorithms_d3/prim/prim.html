@@ -636,8 +636,8 @@ function runPrim() {
     }).filter(Boolean);
 
     initPrimGraph();          
-    drawPrimGraph(nodes, edges);
     updateGraphInfo(nodes, edges);
+    drawPrimGraph(nodes, edges);
 
     setTimeout(() => {
         logBox.innerHTML = `<span style='color:#79d7ff; font-size:1.2em;'>
